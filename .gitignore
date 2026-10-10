@@ -1,0 +1,4 @@
+# Go build artifacts (private brain and vendored sbagen live outside this repo root)
+/entrain
+*.test
+*.out
