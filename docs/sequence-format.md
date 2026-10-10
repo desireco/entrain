@@ -73,6 +73,9 @@ First entry fades in from silence; last fades out to silence.
 ## Open questions (to resolve during Phase 2)
 
 - Chords (multiple simultaneous binaural pairs) — separate `[[voice]]` with `at`, or a `[[chord]]` type?
+- Noise voice schema: generalize to `type = "noise"` + `color = "pink"|"brown"|"white"`, or keep per-color types?
+- Bilateral/EMDR voice fields: `rate`, `tone`, `shape` (beep/click/noise-burst), pan curve — first post-v0.1; requires parallel scheduling for mixes.
+- Parallel scheduling (`at`): promoted to first post-v0.1 work — EMDR + binaural + noise mixes need it.
 - Frequency slides/drift (`slide_to`, random wobble) — entry fields or separate automation section?
 - Amplitude automation over an entry (ramps beyond fades).
 - MP3 metadata mapping (`title`, future `album`/`genre`).

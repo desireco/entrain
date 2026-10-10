@@ -16,6 +16,17 @@ Replace the vendored GPLv2 SBaGen C binary with an original Go implementation of
 - `sbagen/` stays vendored, read-only, unmodified — reference and comparison tooling only.
 - Expected outcome: **MIT-licensed** codebase (LICENSE written, © 2026 Zeljko Dakic). Rendered audio is always user-owned.
 
+## Direction (first brainstorm, Oct 2026)
+
+Standing product bets; tracked as GitHub issues.
+
+- Noise palette is a flagship, not a checkbox: white/pink/brown with a quality bar (correct spectral slopes, decorrelated stereo, no DC/artifacts).
+- Texture voices: "ethereal" material via extreme elongation (paulstretch-style granular technique, clean-room) applied to our own voices; stretching loaded background audio comes later.
+- No preset library — users author their own sessions; ease-of-use lives in docs and `examples/` trains.
+- **Beatscope** (working name): separate analyzer utility detecting binaural beats in any audio file (carrier, detune/beat Hz, confidence). User-facing trust tool; doubles as Phase-4 validation harness. Second binary in-repo (`cmd/beatscope`); repo split later if warranted.
+- EMDR bilateral voice (alternating L/R, configurable rate/tone/shape), designed to mix with binaural + noise → requires parallel `at` scheduling: first post-v0.1 format work.
+- WASM build / web player on entrainspace.io: on the later list.
+
 ## Target architecture
 
 ```
@@ -32,7 +43,7 @@ sequence (TOML) → synth (osc/noise/envelope) → mixer (float64) → encoder �
 - Exit: `go build ./...` green, repo skeleton committed.
 
 ### Phase 1 — Synth core → WAV
-- Sine oscillator (phase-accumulating, float64), binaural voice (L/R = carrier ± beat/2), pink noise, amplitude envelopes with crossfade.
+- Sine oscillator (phase-accumulating, float64), binaural voice (L/R = carrier ± beat/2), noise palette (white/pink/brown, quality bar: correct spectral slopes, decorrelated stereo), amplitude envelopes with crossfade.
 - 44.1k/48k, dithered 16-bit WAV out.
 - Exit: render a known sequence by hand-written code; waveform spot-checks (frequency peaks via FFT/analysis) match math expectations.
 
@@ -50,7 +61,7 @@ sequence (TOML) → synth (osc/noise/envelope) → mixer (float64) → encoder �
 - Exit: usable v0.1 tagged, MIT license in place.
 
 ### Phase 5 — Later / optional
-- Opus/AAC outputs, voice types beyond binaural/pink (bell, spin — from public descriptions only), background audio mixing, live playback, drift/slides (`slide_to`), randomized variation.
+- Opus/AAC outputs, voice types beyond binaural/noise (bell, spin, EMDR bilateral, ethereal textures — from public techniques only), background audio mixing, live playback, drift/slides (`slide_to`), randomized variation, WASM/web player. First post-v0.1 priority: parallel `at` scheduling + EMDR bilateral (see Direction).
 
 ## Risks
 
