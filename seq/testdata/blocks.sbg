@@ -1,0 +1,19 @@
+## test: nested blocks
+
+burst: {
+ +0:00 up
+ +0:05 off
+ +0:10 up
+ +0:15 off
+}
+
+hour: {
+ +0:00 burst
+ +1:00 burst
+}
+
+NOW hour
++2:00 off
+
+up: 250+20/60
+off: -
