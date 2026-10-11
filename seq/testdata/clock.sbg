@@ -1,0 +1,8 @@
+## test: clock times and midnight wrap
+
+night: 200+4/40 pink/30
+
+22:00 night
+06:00 off
+
+off: -
