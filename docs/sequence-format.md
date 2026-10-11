@@ -1,6 +1,6 @@
 # Sequence Format Spec (draft v0)
 
-Status: **draft** — schema will evolve during implementation; breaking changes expected until v0.1. Companion: [migration-plan.md](migration-plan.md).
+Status: **draft, deferred** — .sbg read-compatibility is the v0 frontend (see migration-plan Direction); this TOML schema is the native authoring format, planned post-v0.1. Companion: [migration-plan.md](migration-plan.md).
 
 Goal: a modern, typed replacement for SBaGen's `.sbg` format. TOML, human-writable, no reimplementation of `.sbg` syntax or semantics.
 

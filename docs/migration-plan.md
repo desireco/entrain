@@ -10,7 +10,7 @@ Replace the vendored GPLv2 SBaGen C binary with an original Go implementation of
 
 ## Ground rules (clean-room)
 
-- Never read `sbagen/sbagen-1.4.5/sbagen.c` or port its code; never copy text from its docs.
+- Never read or port `sbagen/sbagen-1.4.5/sbagen.c`; never copy text verbatim from its docs (owner clarification Oct 2026: docs + example `.sbg` files are fair reference material).
 - Public DSP technique only: detuned carrier pairs (binaural), Voss-McCartney / Paul Kellet pink noise, linear/exponential envelopes.
 - Behavioral comparison against the *running* sbagen binary is allowed (run both, listen/analyze waveforms).
 - `sbagen/` stays vendored, read-only, unmodified — reference and comparison tooling only.
@@ -20,6 +20,7 @@ Replace the vendored GPLv2 SBaGen C binary with an original Go implementation of
 
 Standing product bets; tracked as GitHub issues.
 
+- **SBG-first pivot (Oct 2026)**: v0's frontend is a `.sbg` reader — `entrain focus-10` resolves `focus-10.sbg` and renders it (default: first→last event, like implicit `-S -E`), mp3 out (`-q` bitrate). Motivation: owner's existing `.sbg` library keeps working. Reference: SBAGEN.txt §4 + `examples/` + owner's sessions; never `sbagen.c`. Native brown noise replaces the owner's ffmpeg-generated `-m` ogg beds. TOML "trains" move to post-v0.1.
 - Noise palette is a flagship, not a checkbox: white/pink/brown with a quality bar (correct spectral slopes, decorrelated stereo, no DC/artifacts).
 - Texture voices: "ethereal" material via extreme elongation (paulstretch-style granular technique, clean-room) applied to our own voices; stretching loaded background audio comes later.
 - No preset library — users author their own sessions; ease-of-use lives in docs and `examples/` trains.
@@ -47,9 +48,10 @@ sequence (TOML) → synth (osc/noise/envelope) → mixer (float64) → encoder �
 - 44.1k/48k, dithered 16-bit WAV out.
 - Exit: render a known sequence by hand-written code; waveform spot-checks (frequency peaks via FFT/analysis) match math expectations.
 
-### Phase 2 — Sequence format v0 + timeline engine
-- Parse the TOML schema from [sequence-format.md](sequence-format.md); sequential timeline with crossfades.
-- Exit: `entrain render session.toml -o out.wav` reproduces Phase-1 results from a file.
+### Phase 2 — SBG reader + timeline engine
+- Parse `.sbg` (subset first: owner's sessions + `examples/basics` — tone-sets `-`/`pink`/`binaural`/sine, absolute/NOW/relative times, default 30s-side crossfades, tone continuity across sets). Later: fades/slides (`-`, `=`, `->`), blocks, bell/spin/wave, `-m` mixfiles, `-i`/`-p` specs.
+- `--dry-run` timeline table (plan preview + lint warnings) — interface-first milestone.
+- Exit: `entrain focus-10 --dry-run` prints a correct plan for every `examples/basics` file.
 
 ### Phase 3 — Encoders
 - FLAC via `mewkiz/flac`; MP3 320kbps via `braheezy/shine-mp3`; dithering stage shared.
@@ -61,7 +63,7 @@ sequence (TOML) → synth (osc/noise/envelope) → mixer (float64) → encoder �
 - Exit: usable v0.1 tagged, MIT license in place.
 
 ### Phase 5 — Later / optional
-- Opus/AAC outputs, voice types beyond binaural/noise (bell, spin, EMDR bilateral, ethereal textures — from public techniques only), background audio mixing, live playback, drift/slides (`slide_to`), randomized variation, WASM/web player. First post-v0.1 priority: parallel `at` scheduling + EMDR bilateral (see Direction).
+- TOML sequence format ("trains", [sequence-format.md](sequence-format.md)) as the native authoring format; Opus/AAC outputs, voice types beyond binaural/noise (bell, spin, EMDR bilateral, ethereal textures — from public techniques only), background audio mixing (`-m` mixfiles), live playback, drift/slides (`->`, `slide_to`), randomized variation, WASM/web player.
 
 ## Risks
 
