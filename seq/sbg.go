@@ -119,28 +119,35 @@ func (p *parser) run(src string) error {
 	p.blocks = map[string][]Event{}
 	var block *blockCtx
 
-	for _, raw := range strings.Split(src, "\n") {
+	for _, rawLine := range strings.Split(src, "\n") {
 		p.line++
-		line := strings.TrimSpace(raw)
+		line := strings.TrimSpace(rawLine)
 
-		switch {
-		case line == "" || strings.HasPrefix(line, "#"):
-			if strings.HasPrefix(line, "##") {
+		// '#' starts a comment anywhere in a line (SBAGEN.txt §4.1);
+		// full-line '##' comments form the printed description.
+		if i := strings.IndexByte(line, '#'); i >= 0 {
+			if i == 0 && strings.HasPrefix(line, "##") {
 				p.seq.Description = append(p.seq.Description, strings.TrimPrefix(line, "##"))
 			}
+			line = strings.TrimSpace(line[:i])
+		}
+		if line == "" {
 			continue
-		case block != nil && line == "}":
-			p.blocks[block.name] = block.lines
-			block = nil
-			continue
-		case block != nil && line == "::":
-			continue // optional block terminator; ignored
-		case block != nil:
-			ev, err := p.timelineLine(line, true)
-			if err != nil {
-				return err
+		}
+
+		if block != nil {
+			switch line {
+			case "}":
+				p.blocks[block.name] = block.lines
+				block = nil
+			case "::": // optional block terminator; ignored
+			default:
+				ev, err := p.timelineLine(line, true)
+				if err != nil {
+					return err
+				}
+				block.lines = append(block.lines, ev)
 			}
-			block.lines = append(block.lines, ev)
 			continue
 		}
 
@@ -157,9 +164,6 @@ func (p *parser) run(src string) error {
 				return fmt.Errorf("line %d: bad name %q", p.line, name)
 			}
 			if len(f) == 2 && f[1] == "{" {
-				if block != nil {
-					return fmt.Errorf("line %d: nested block openings not allowed", p.line)
-				}
 				block = &blockCtx{name: name}
 				continue
 			}

@@ -162,16 +162,22 @@ func TestPlanLengthLimit(t *testing.T) {
 	}
 }
 
-func TestPlanSingleEventRequiresLimit(t *testing.T) {
+func TestPlanSingleEventOpenEnded(t *testing.T) {
 	s, err := seq.Parse("ts: 200+10/40\nNOW ts")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := seq.BuildPlan(s, seq.PlanOpts{}); err == nil {
-		t.Fatal("expected zero-span error without a limit")
+	// No limit: open-ended (sbagen plays until stopped) — plannable.
+	p, err := seq.BuildPlan(s, seq.PlanOpts{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !p.OpenEnded {
+		t.Fatal("single event without -L should be open-ended")
 	}
 
-	p, err := seq.BuildPlan(s, seq.PlanOpts{LengthLimit: time.Minute})
+	// With a limit it renders: fade in, hold, fade out.
+	p, err = seq.BuildPlan(s, seq.PlanOpts{LengthLimit: time.Minute})
 	if err != nil {
 		t.Fatal(err)
 	}

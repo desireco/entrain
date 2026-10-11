@@ -56,6 +56,7 @@ type Plan struct {
 	Seq        *Sequence
 	Start, End time.Duration
 	Crossfade  time.Duration
+	OpenEnded  bool    // single event, no -L: plannable, not renderable
 	Events     []Event // clipped to the render span, for display
 	Voices     []VoicePlan
 	Warnings   []Warning
@@ -105,8 +106,12 @@ func BuildPlan(s *Sequence, opts PlanOpts) (*Plan, error) {
 			plan.End = limited
 		}
 	}
+	// A single event (or a zero-length span) is open-ended: sbagen would
+	// play it until stopped. The plan still describes it; only rendering
+	// requires a length limit.
 	if plan.End <= plan.Start {
-		return nil, fmt.Errorf("seq: sequence has no duration to render (single event at %s); give a length limit (-L)", FormatDur(plan.Start))
+		plan.OpenEnded = true
+		plan.End = plan.Start
 	}
 	var clipped []Event
 	for _, ev := range events {
@@ -116,8 +121,8 @@ func BuildPlan(s *Sequence, opts PlanOpts) (*Plan, error) {
 	}
 	plan.Events = clipped
 	if len(clipped) < 2 {
-		// single event + limit: the whole render is one segment ending in
-		// silence at End
+		// one segment ending in silence (either at End or, when
+		// open-ended, at the same instant — display only)
 		clipped = append(clipped, Event{When: plan.End, Set: ""})
 	}
 

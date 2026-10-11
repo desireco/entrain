@@ -142,6 +142,10 @@ func cmdRender(args []string, stdout, stderr io.Writer) int {
 	if *dryRun {
 		return 0
 	}
+	if plan.OpenEnded {
+		fmt.Fprintf(stderr, "entrain: %s: open-ended sequence; pass -L to render\n", path)
+		return 1
+	}
 
 	buf := plan.Render(*rate)
 	if *outPath == "" {

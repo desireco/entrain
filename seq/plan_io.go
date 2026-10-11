@@ -17,9 +17,14 @@ func (p *Plan) WritePlan(w io.Writer) {
 	if len(p.Seq.Description) > 0 {
 		fmt.Fprintln(w)
 	}
-	fmt.Fprintf(w, "plan: %s → %s (%s), %d event(s), %d voice(s), crossfade %s\n\n",
-		FormatDur(p.Start), FormatDur(p.End), FormatDur(p.End-p.Start),
-		len(p.Events), len(p.Voices), FormatDur(p.Crossfade))
+	if p.OpenEnded {
+		fmt.Fprintf(w, "plan: %s → open-ended (pass -L to render), %d event(s), %d voice(s), crossfade %s\n\n",
+			FormatDur(p.Start), len(p.Events), len(p.Voices), FormatDur(p.Crossfade))
+	} else {
+		fmt.Fprintf(w, "plan: %s → %s (%s), %d event(s), %d voice(s), crossfade %s\n\n",
+			FormatDur(p.Start), FormatDur(p.End), FormatDur(p.End-p.Start),
+			len(p.Events), len(p.Voices), FormatDur(p.Crossfade))
+	}
 
 	fmt.Fprintln(w, "  time      fade  tone-set")
 	for _, ev := range p.Events {
