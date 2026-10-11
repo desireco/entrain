@@ -85,6 +85,7 @@ func BuildPlan(s *Sequence, opts PlanOpts) (*Plan, error) {
 	}
 
 	plan := &Plan{Seq: s, Start: s.Events[0].When, Crossfade: opts.Crossfade}
+	plan.Warnings = append(plan.Warnings, s.Warnings...) // parser lints flow to the CLI
 	if plan.Crossfade <= 0 {
 		plan.Crossfade = DefaultCrossfade
 		if s.Opts.FadeMS != "" {
