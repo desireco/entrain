@@ -13,11 +13,19 @@ import (
 // arithmetic after changing the bitrate.
 var mpeg1Layer3Bitrates = [16]int{0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 0}
 
+// shineGainComp compensates this Shine port's uniform output gain: the
+// decoded audio comes out ≈+1.0 dB (×1.123) hot versus the input,
+// measured on tone and RMS levels across content (LAME through the same
+// decode chain shows ±0.0%). Attenuating the input keeps wav/flac/mp3
+// renders of one session level-matched and preserves headroom.
+const shineGainComp = 1.0 / 1.1233
+
 // WriteMp3 encodes interleaved stereo float64 samples (nominal ±1) as
 // MP3 at the given bitrate (kbps, MPEG-1 Layer III table: 32…320) via
 // the pure-Go Shine encoder. Sample rates are the MPEG-1 set
 // (32000/44100/48000). Samples pass the shared clip → TPDF-dither →
-// quantize stage; output is deterministic for identical input.
+// quantize stage (after Shine's gain compensation); output is
+// deterministic for identical input.
 func WriteMp3(w io.Writer, sampleRate, bitrate int, x []float64) error {
 	if len(x)%2 != 0 {
 		return fmt.Errorf("codec: interleaved stereo buffer has odd length %d", len(x))
@@ -33,7 +41,7 @@ func WriteMp3(w io.Writer, sampleRate, bitrate int, x []float64) error {
 	q := newQuantizer()
 	s16 := make([]int16, len(x))
 	for i, s := range x {
-		s16[i] = q.int16(s)
+		s16[i] = q.int16(s * shineGainComp)
 	}
 
 	enc := mp3.NewEncoder(sampleRate, 2)
