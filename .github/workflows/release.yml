@@ -35,6 +35,7 @@ jobs:
           mkdir -p "dist/$dir"
           go build -trimpath -ldflags "-X main.version=${GITHUB_REF_NAME}" -o "dist/$dir/entrain${ext}" ./cmd/entrain
           go build -trimpath -ldflags "-X main.version=${GITHUB_REF_NAME}" -o "dist/$dir/beatscope${ext}" ./cmd/beatscope
+          go build -trimpath -ldflags "-X main.version=${GITHUB_REF_NAME}" -o "dist/$dir/noisemaker${ext}" ./cmd/noisemaker
           cp LICENSE README.md "dist/$dir/"
           tar -C dist -czf "${dir}.tar.gz" "$dir"
           sha256sum "${dir}.tar.gz" > "${dir}.tar.gz.sha256"
