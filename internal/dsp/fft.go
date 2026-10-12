@@ -82,12 +82,13 @@ type Peak struct {
 // Peaks finds local maxima of a magnitude spectrum (as returned by
 // Spectrum) within [minF, maxF], with parabolic interpolation for
 // sub-bin frequency accuracy. Peaks are returned in descending
-// magnitude order, filtered to prominence ≥ minProm.
+// magnitude order, filtered to prominence ≥ minProm. Prominence is
+// measured against the local one-octave median, so sloped spectra
+// (pink/brown noise) do not make their own low end look like peaks.
 func Peaks(mag []float64, sr, minF, maxF, minProm float64) []Peak {
 	// mag holds the half-spectrum of an N-sample FFT (N = 2·(len−1));
 	// bin k sits at k·sr/N.
 	n := 2 * (len(mag) - 1)
-	band := []float64{}
 	lo, hi := int(minF*float64(n)/sr), int(maxF*float64(n)/sr)
 	if lo < 1 {
 		lo = 1
@@ -98,12 +99,25 @@ func Peaks(mag []float64, sr, minF, maxF, minProm float64) []Peak {
 	if lo > hi {
 		return nil
 	}
-	band = mag[lo : hi+1]
-	median := median(band)
 
 	var peaks []Peak
 	for i := lo; i <= hi; i++ {
 		if mag[i] <= mag[i-1] || mag[i] < mag[i+1] {
+			continue
+		}
+		// Local one-octave median around the candidate.
+		nlo, nhi := i/2, 2*i
+		if nlo < lo {
+			nlo = lo
+		}
+		if nhi > hi {
+			nhi = hi
+		}
+		if nhi-nlo < 4 { // tiny neighborhoods cannot judge prominence
+			continue
+		}
+		prom := mag[i] / median(mag[nlo:nhi+1])
+		if prom < minProm {
 			continue
 		}
 		// Parabolic interpolation around the bin maximum.
@@ -116,10 +130,6 @@ func Peaks(mag []float64, sr, minF, maxF, minProm float64) []Peak {
 			delta = 0
 		}
 		freq := (float64(i) + delta) * sr / float64(n)
-		prom := mag[i] / median
-		if prom < minProm {
-			continue
-		}
 		peaks = append(peaks, Peak{Freq: freq, Mag: mag[i], Prominence: prom})
 	}
 	// Sort by magnitude, descending.
