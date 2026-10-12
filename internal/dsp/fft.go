@@ -149,3 +149,16 @@ func median(x []float64) float64 {
 	sort.Float64s(s)
 	return s[len(s)/2]
 }
+
+// IFFT computes the inverse DFT of re/im in place: ifft(fft(x)) == x.
+// Same length constraints as FFT.
+func IFFT(re, im []float64) {
+	n := len(re)
+	for i := range re {
+		re[i], im[i] = im[i], -re[i] // conjugate
+	}
+	FFT(re, im)
+	for i := range re {
+		re[i], im[i] = im[i]/float64(n), -re[i]/float64(n) // conjugate + 1/N
+	}
+}
