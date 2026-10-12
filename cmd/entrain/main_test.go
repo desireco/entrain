@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -99,6 +100,61 @@ func TestRenderWritesWav(t *testing.T) {
 	// gamma high tone lives on the left ear (200 Hz).
 	if got := dsp.Goertzel(l[44100:4*44100], 44100, 200); got < 0.2*float64(3*44100)/2 {
 		t.Errorf("L@200 = %.0f, tone missing", got)
+	}
+}
+
+func TestRenderFormats(t *testing.T) {
+	// Same 5 s render through every format; verify each file's signature.
+	dir := t.TempDir()
+	for _, tc := range []struct {
+		format  string
+		bitrate int
+		want    string
+	}{
+		{"wav", 0, "RIFF"},
+		{"flac", 0, "fLaC"},
+		{"mp3", 320, "\xff\xfb"},
+	} {
+		out := filepath.Join(dir, "out."+tc.format)
+		args := []string{"render", "testdata/basic.sbg", "-L", "0:00:05", "-f", tc.format, "-o", out}
+		if tc.bitrate > 0 {
+			args = append(args, "-q", strconv.Itoa(tc.bitrate))
+		}
+		code, stdout, errOut := runCLI(t, args...)
+		if code != 0 {
+			t.Fatalf("%s: code=%d stdout=%q stderr=%q", tc.format, code, stdout, errOut)
+		}
+		raw, err := os.ReadFile(out)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !strings.Contains(stdout, "wrote "+out) || !strings.Contains(stdout, tc.format) {
+			t.Errorf("%s: summary %q", tc.format, stdout)
+		}
+		if !strings.HasPrefix(string(raw), tc.want) {
+			t.Errorf("%s: signature %q, want prefix %q", tc.format, raw[:4], tc.want)
+		}
+	}
+
+	// Default output name follows the format: basic.flac next to the input.
+	code, stdout, errOut := runCLI(t, "render", "testdata/basic.sbg", "-L", "0:00:02", "-f", "flac")
+	if code != 0 {
+		t.Fatalf("default-name: code=%d stderr=%q", code, errOut)
+	}
+	if !strings.Contains(stdout, "testdata/basic.flac") {
+		t.Errorf("default flac name missing: %q", stdout)
+	}
+	os.Remove("testdata/basic.flac")
+}
+
+func TestBadFormatAndBitrate(t *testing.T) {
+	code, _, errOut := runCLI(t, "render", "testdata/basic.sbg", "-f", "ogg")
+	if code != 2 || !strings.Contains(errOut, "format") {
+		t.Fatalf("format: code=%d stderr=%q", code, errOut)
+	}
+	code, _, errOut = runCLI(t, "render", "testdata/basic.sbg", "-f", "mp3", "-q", "321")
+	if code != 1 || !strings.Contains(errOut, "bitrate") {
+		t.Fatalf("bitrate: code=%d stderr=%q", code, errOut)
 	}
 }
 

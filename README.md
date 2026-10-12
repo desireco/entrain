@@ -12,9 +12,9 @@ informally, *trains*.
 Render SBaGen `.sbg` session files to audio — your existing sessions keep working:
 
 ```
-entrain focus-10                  # renders focus-10.sbg → focus-10.wav
+entrain focus-10 -f mp3            # renders focus-10.sbg → focus-10.mp3 (320 kbps)
 entrain focus-10 --dry-run        # show the timeline plan + lint warnings
-entrain render sleep.sbg -L 0:30 -o nap.wav
+entrain render sleep.sbg -f flac -L 0:30 -o nap.flac
 ```
 
 The v0 reader covers the common `.sbg` subset: binaural tones (`carrier±beat/amp`),
@@ -48,7 +48,7 @@ Early days — no usable release yet.
 | 0 | Scaffold: Go module, package layout, CI — done |
 | 1 | Synth core (binaural, noise palette, envelopes) → WAV — done |
 | 2 | `.sbg` reader + timeline engine → `entrain <name>` renders — done |
-| 3 | FLAC + MP3 encoders |
+| 3 | FLAC + MP3 encoders — done (MP3 via pure-Go Shine at up to 320 kbps) |
 | 4 | CLI polish + behavioral validation against SBaGen |
 | 5 | Later: TOML trains, Opus/AAC, live playback, frequency slides, chords |
 
