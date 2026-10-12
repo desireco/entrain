@@ -49,6 +49,7 @@ tracked on the roadmap.
 Covered today: tone-set subset (sines, binaural pairs, pink beds),
 absolute/NOW/relative timelines, default crossfades, tone continuity.
 Not exercised by this table: `==`/`->` slides (see above), bell/spin/
-wave voices, `-m` bed mixing (entrain warns), `-p` predefined
-sequences (out of scope). Add rows here whenever a semantics gap is
+wave voices, `-p` predefined sequences (out of scope). `-m` bed mixing
+is implemented since the noise split (looping beds; re-run this harness
+with a WAV bed to extend the table). Add rows here whenever a semantics gap is
 closed or a new voice lands.
