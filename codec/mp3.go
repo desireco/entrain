@@ -38,10 +38,10 @@ func WriteMp3(w io.Writer, sampleRate, bitrate int, x []float64) error {
 	if _, err := mp3.CheckConfig(sampleRate, bitrate); err != nil {
 		return fmt.Errorf("codec: mp3: sample rate %d / bitrate %d: %w", sampleRate, bitrate, err)
 	}
-	q := newQuantizer()
+	q := newQuantizer(16) // MP3's internal fixed point is depth-independent
 	s16 := make([]int16, len(x))
 	for i, s := range x {
-		s16[i] = q.int16(s * shineGainComp)
+		s16[i] = int16(q.sample(s * shineGainComp))
 	}
 
 	enc := mp3.NewEncoder(sampleRate, 2)

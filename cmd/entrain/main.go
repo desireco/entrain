@@ -33,6 +33,7 @@ A session is a .sbg file path or a bare name resolved as <name>.sbg.
 Flags:
 
   -f format    output format: wav (default), flac, or mp3
+  -b bits      bit depth for wav/flac: 16 (default) or 24 (lossless masters)
   -q kbps      MP3 bitrate, MPEG-1 Layer III 32–320 (default 320)
   -o file      output path (default: <session>.<format>)
   -L h:mm[:ss] limit the output length (overrides a -L in the file)
@@ -71,6 +72,7 @@ func cmdRender(args []string, stdout, stderr io.Writer) int {
 	fs.SetOutput(stderr)
 	dryRun := fs.Bool("dry-run", false, "print the render plan and exit")
 	format := fs.String("f", "wav", "output format: wav, flac, or mp3")
+	bitDepth := fs.Int("b", 16, "bit depth for wav/flac output")
 	bitrate := fs.Int("q", 320, "MP3 bitrate in kbps (32-320)")
 	outPath := fs.String("o", "", "output path (default: <session>.<format>)")
 	length := fs.String("L", "", "limit output length (h:mm[:ss])")
@@ -79,7 +81,7 @@ func cmdRender(args []string, stdout, stderr io.Writer) int {
 	// may appear after the session name (`entrain focus-10 --dry-run`),
 	// keeping each value-taking flag glued to its argument.
 	var flags, pos []string
-	withValue := map[string]bool{"-o": true, "-L": true, "-r": true, "-f": true, "-q": true}
+	withValue := map[string]bool{"-o": true, "-L": true, "-r": true, "-f": true, "-q": true, "-b": true}
 	for i := 0; i < len(args); i++ {
 		a := args[i]
 		if strings.HasPrefix(a, "-") && a != "-" {
@@ -104,6 +106,13 @@ func cmdRender(args []string, stdout, stderr io.Writer) int {
 	default:
 		fmt.Fprintf(stderr, "entrain: unknown format %q (wav, flac, or mp3)\n", *format)
 		return 2
+	}
+	if *bitDepth != 16 && *bitDepth != 24 {
+		fmt.Fprintf(stderr, "entrain: unsupported bit depth %d (16 or 24)\n", *bitDepth)
+		return 2
+	}
+	if *format == "mp3" && *bitDepth != 16 {
+		fmt.Fprintf(stderr, "warning: -b %d ignored: mp3 is lossy with a fixed internal depth\n", *bitDepth)
 	}
 	if *rate != 44100 && *rate != 48000 {
 		fmt.Fprintf(stderr, "entrain: unsupported sample rate %d (44100 or 48000)\n", *rate)
@@ -161,7 +170,7 @@ func cmdRender(args []string, stdout, stderr io.Writer) int {
 	if *outPath == "" {
 		*outPath = strings.TrimSuffix(path, ".sbg") + "." + *format
 	}
-	if err := encode(*outPath, *format, *rate, *bitrate, buf); err != nil {
+	if err := encode(*outPath, *format, *rate, *bitDepth, *bitrate, buf); err != nil {
 		fmt.Fprintf(stderr, "entrain: %v\n", err)
 		return 1
 	}
@@ -172,22 +181,22 @@ func cmdRender(args []string, stdout, stderr io.Writer) int {
 }
 
 // encode writes the rendered buffer to path in the given format.
-func encode(path, format string, rate, bitrate int, buf []float64) error {
+func encode(path, format string, rate, bitDepth, bitrate int, buf []float64) error {
 	f, err := os.Create(path)
 	if err != nil {
 		return err
 	}
 	switch format {
 	case "wav":
-		err = codec.WriteWav16(f, rate, buf)
+		err = codec.WriteWav(f, rate, bitDepth, buf)
 		if err == nil {
 			err = f.Close()
 		} else {
 			f.Close()
 		}
 	case "flac":
-		// WriteFlac16's encoder closes the file itself (StreamInfo patch).
-		err = codec.WriteFlac16(f, rate, buf)
+		// WriteFlac's encoder closes the file itself (StreamInfo patch).
+		err = codec.WriteFlac(f, rate, bitDepth, buf)
 	case "mp3":
 		err = codec.WriteMp3(f, rate, bitrate, buf)
 		if err == nil {
