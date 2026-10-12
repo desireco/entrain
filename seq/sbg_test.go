@@ -122,7 +122,6 @@ func TestParseUnsupportedVoicesAndOptions(t *testing.T) {
 	for _, want := range []string{
 		"mix input -m bed.ogg not supported yet",
 		"bell voice not supported yet",
-		"soundtrack mix voice not supported yet",
 		"spin voice not supported yet",
 		"wave voices not supported yet",
 		`fade spec "==" not supported yet`,
@@ -242,5 +241,19 @@ func TestParseFractionalSpecs(t *testing.T) {
 	}
 	if sp[1].Beat != 0 || sp[1].Carrier != 400 || sp[1].Amp != 1.5 {
 		t.Errorf("sine spec = %+v", sp[1])
+	}
+}
+
+func TestParseBedColors(t *testing.T) {
+	s, err := seq.Parse("beds: white/15 pink/20 brown/30 mix/40\nNOW beds")
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := map[string]seq.ToneKind{"white/15": seq.White, "pink/20": seq.Pink,
+		"brown/30": seq.Brown, "mix/40": seq.Mix}
+	for _, sp := range s.Sets["beds"].Specs {
+		if want[sp.Raw] != sp.Kind {
+			t.Errorf("%s parsed as kind %v", sp.Raw, sp.Kind)
+		}
 	}
 }

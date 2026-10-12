@@ -21,7 +21,9 @@ type ToneKind uint8
 
 const (
 	Silence  ToneKind = iota // channel unused ('-')
-	Pink                     // pink-noise bed
+	White                    // white-noise bed ('white/<amp>')
+	Pink                     // pink-noise bed ('pink/<amp>')
+	Brown                    // brown-noise bed ('brown/<amp>')
 	Mix                      // soundtrack mix input ('mix/<amp>') — read, not yet rendered
 	Binaural                 // '<carrier>[±<beat>]/<amp>' (beat 0 = plain sine)
 	Bell                     // 'bell+<freq>/<amp>' — read, not yet rendered
@@ -405,7 +407,7 @@ func (p *parser) warn(line int, msg string) {
 var (
 	nameRe   = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_-]*$`)
 	silence  = regexp.MustCompile(`^-$`)
-	pinkMix  = regexp.MustCompile(`^(pink|mix)/([0-9]*\.?[0-9]+)$`)
+	bedRe    = regexp.MustCompile(`^(white|pink|brown|mix)/([0-9]*\.?[0-9]+)$`)
 	bell     = regexp.MustCompile(`^bell\+([0-9]*\.?[0-9]+)/([0-9]*\.?[0-9]+)$`)
 	spin     = regexp.MustCompile(`^spin:([0-9]*\.?[0-9]+)\+([0-9]*\.?[0-9]+)/([0-9]*\.?[0-9]+)$`)
 	wave     = regexp.MustCompile(`^wave[0-9]+:.+$`)
@@ -468,19 +470,26 @@ func (p *parser) parseSpec(raw string) (ToneSpec, error) {
 	switch {
 	case silence.MatchString(raw):
 		spec.Kind = Silence
-	case strings.HasPrefix(raw, "pink/"), strings.HasPrefix(raw, "mix/"):
-		m := pinkMix.FindStringSubmatch(raw)
+	case strings.HasPrefix(raw, "white/"), strings.HasPrefix(raw, "pink/"),
+		strings.HasPrefix(raw, "brown/"), strings.HasPrefix(raw, "mix/"):
+		m := bedRe.FindStringSubmatch(raw)
 		if m == nil {
-			return spec, fmt.Errorf("spec %q: bad pink/mix spec", raw)
+			return spec, fmt.Errorf("spec %q: bad noise/mix spec", raw)
 		}
 		a, err := amp(m[2])
 		if err != nil {
 			return spec, err
 		}
-		spec.Kind, spec.Amp = Pink, a
-		if m[1] == "mix" {
+		spec.Amp = a
+		switch m[1] {
+		case "white":
+			spec.Kind = White
+		case "brown":
+			spec.Kind = Brown
+		case "mix":
 			spec.Kind = Mix
-			p.warn(p.line, fmt.Sprintf("%s: soundtrack mix voice not supported yet; ignored", raw))
+		default:
+			spec.Kind = Pink
 		}
 	case strings.HasPrefix(raw, "bell+"):
 		m := bell.FindStringSubmatch(raw)
