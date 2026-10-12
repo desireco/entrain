@@ -14,7 +14,13 @@ Render SBaGen `.sbg` session files to audio — your existing sessions keep work
 ```
 entrain focus-10 -f mp3            # renders focus-10.sbg → focus-10.mp3 (320 kbps)
 entrain focus-10 --dry-run        # show the timeline plan + lint warnings
-entrain render sleep.sbg -f flac -L 0:30 -o nap.flac
+entrain render sleep.sbg -f flac -b 24 -L 0:30 -o nap.flac
+```
+
+Verify what any renderer (this one included) put in a file:
+
+```
+beatscope session.wav              # carrier / beat / confidence per pair
 ```
 
 The v0 reader covers the common `.sbg` subset: binaural tones (`carrier±beat/amp`),
@@ -49,7 +55,7 @@ Early days — no usable release yet.
 | 1 | Synth core (binaural, noise palette, envelopes) → WAV — done |
 | 2 | `.sbg` reader + timeline engine → `entrain <name>` renders — done |
 | 3 | FLAC + MP3 encoders — done (MP3 via pure-Go Shine at up to 320 kbps) |
-| 4 | CLI polish + behavioral validation against SBaGen |
+| 4 | Beatscope analyzer, 24-bit output, cross-engine validation — done ([results](docs/validation.md)) |
 | 5 | Later: TOML trains, Opus/AAC, live playback, frequency slides, chords |
 
 Details: [docs/migration-plan.md](docs/migration-plan.md) · draft format spec:

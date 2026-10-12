@@ -1,0 +1,46 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - { goos: linux, goarch: amd64 }
+          - { goos: linux, goarch: arm64 }
+          - { goos: darwin, goarch: amd64 }
+          - { goos: darwin, goarch: arm64 }
+          - { goos: windows, goarch: amd64 }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: Build
+        env:
+          CGO_ENABLED: '0'
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          ext=""
+          [ "$GOOS" = windows ] && ext=".exe"
+          dir="entrain-${GOOS}-${GOARCH}"
+          mkdir -p "dist/$dir"
+          go build -trimpath -ldflags "-X main.version=${GITHUB_REF_NAME}" -o "dist/$dir/entrain${ext}" ./cmd/entrain
+          go build -trimpath -ldflags "-X main.version=${GITHUB_REF_NAME}" -o "dist/$dir/beatscope${ext}" ./cmd/beatscope
+          cp LICENSE README.md "dist/$dir/"
+          tar -C dist -czf "${dir}.tar.gz" "$dir"
+          sha256sum "${dir}.tar.gz" > "${dir}.tar.gz.sha256"
+      - uses: softprops/gh-release@v2
+        with:
+          files: |
+            *.tar.gz
+            *.sha256
+          generate_release_notes: true
