@@ -17,10 +17,12 @@ entrain focus-10 --dry-run        # show the timeline plan + lint warnings
 entrain render sleep.sbg -f flac -b 24 -L 0:30 -o nap.flac
 ```
 
-Verify what any renderer (this one included) put in a file:
+Verify what any renderer (this one included) put in a file, and make noise on its own:
 
 ```
 beatscope session.wav              # carrier / beat / confidence per pair
+noisemaker brown 30m -o bed.flac   # standalone noise, entrain-calibrated level
+noisemaker alpha 1h --alpha 1.4    # arbitrary 1/f^alpha slopes
 ```
 
 The v0 reader covers the common `.sbg` subset: binaural tones (`carrier±beat/amp`),
