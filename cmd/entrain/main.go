@@ -32,10 +32,12 @@ A session is a .sbg file path or a bare name resolved as <name>.sbg.
 
 Flags:
 
-  --dry-run       print the render plan (timeline + lint warnings) and exit
-  -o file         output path (default: <session>.wav)
-  -L h:mm[:ss]    limit the output length (overrides a -L in the file)
-  -r rate         sample rate, 44100 or 48000 (default 44100)
+  -f format    output format: wav (default), flac, or mp3
+  -q kbps      MP3 bitrate, MPEG-1 Layer III 32–320 (default 320)
+  -o file      output path (default: <session>.<format>)
+  -L h:mm[:ss] limit the output length (overrides a -L in the file)
+  -r rate      sample rate, 44100 or 48000 (default 44100)
+  --dry-run    print the render plan (timeline + lint warnings) and exit
 
 Roadmap: docs/migration-plan.md. Reads .sbg per SBaGen's published format;
 never writes it.`
@@ -68,14 +70,16 @@ func cmdRender(args []string, stdout, stderr io.Writer) int {
 	fs := flag.NewFlagSet("render", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	dryRun := fs.Bool("dry-run", false, "print the render plan and exit")
-	outPath := fs.String("o", "", "output path (default: <session>.wav)")
+	format := fs.String("f", "wav", "output format: wav, flac, or mp3")
+	bitrate := fs.Int("q", 320, "MP3 bitrate in kbps (32-320)")
+	outPath := fs.String("o", "", "output path (default: <session>.<format>)")
 	length := fs.String("L", "", "limit output length (h:mm[:ss])")
 	rate := fs.Int("r", 44100, "sample rate")
 	// Go's flag package stops at the first positional; reorder so flags
 	// may appear after the session name (`entrain focus-10 --dry-run`),
 	// keeping each value-taking flag glued to its argument.
 	var flags, pos []string
-	withValue := map[string]bool{"-o": true, "-L": true, "-r": true}
+	withValue := map[string]bool{"-o": true, "-L": true, "-r": true, "-f": true, "-q": true}
 	for i := 0; i < len(args); i++ {
 		a := args[i]
 		if strings.HasPrefix(a, "-") && a != "-" {
@@ -93,6 +97,12 @@ func cmdRender(args []string, stdout, stderr io.Writer) int {
 	}
 	if fs.NArg() != 1 {
 		fmt.Fprintln(stderr, usage)
+		return 2
+	}
+	switch *format {
+	case "wav", "flac", "mp3":
+	default:
+		fmt.Fprintf(stderr, "entrain: unknown format %q (wav, flac, or mp3)\n", *format)
 		return 2
 	}
 	if *rate != 44100 && *rate != 48000 {
@@ -149,28 +159,54 @@ func cmdRender(args []string, stdout, stderr io.Writer) int {
 
 	buf := plan.Render(*rate)
 	if *outPath == "" {
-		*outPath = strings.TrimSuffix(path, ".sbg") + ".wav"
+		*outPath = strings.TrimSuffix(path, ".sbg") + "." + *format
 	}
-	if err := writeWav(*outPath, *rate, buf); err != nil {
+	if err := encode(*outPath, *format, *rate, *bitrate, buf); err != nil {
 		fmt.Fprintf(stderr, "entrain: %v\n", err)
 		return 1
 	}
-	fmt.Fprintf(stdout, "wrote %s (%s, %d Hz, %s)\n",
-		*outPath, seq.FormatDur(plan.End-plan.Start), *rate,
-		humanBytes(int64(len(buf))*2+44))
+	fmt.Fprintf(stdout, "wrote %s (%s, %d Hz, %s, %s)\n",
+		*outPath, seq.FormatDur(plan.End-plan.Start), *rate, *format,
+		humanBytes(fileSize(*outPath)))
 	return 0
 }
 
-func writeWav(path string, rate int, buf []float64) error {
+// encode writes the rendered buffer to path in the given format.
+func encode(path, format string, rate, bitrate int, buf []float64) error {
 	f, err := os.Create(path)
 	if err != nil {
 		return err
 	}
-	if err := codec.WriteWav16(f, rate, buf); err != nil {
+	switch format {
+	case "wav":
+		err = codec.WriteWav16(f, rate, buf)
+		if err == nil {
+			err = f.Close()
+		} else {
+			f.Close()
+		}
+	case "flac":
+		// WriteFlac16's encoder closes the file itself (StreamInfo patch).
+		err = codec.WriteFlac16(f, rate, buf)
+	case "mp3":
+		err = codec.WriteMp3(f, rate, bitrate, buf)
+		if err == nil {
+			err = f.Close()
+		} else {
+			f.Close()
+		}
+	default:
 		f.Close()
-		return err
+		return fmt.Errorf("unknown format %q", format)
 	}
-	return f.Close()
+	return err
+}
+
+func fileSize(path string) int64 {
+	if st, err := os.Stat(path); err == nil {
+		return st.Size()
+	}
+	return 0
 }
 
 func humanBytes(n int64) string {
