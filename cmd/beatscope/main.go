@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/desireco/entrain/beatscope"
+	"github.com/desireco/entrain/internal/dsp"
 	"github.com/mewkiz/flac"
 )
 
@@ -135,63 +136,16 @@ func decode(path string) (sr int, x []float64, err error) {
 		if rerr != nil {
 			return 0, nil, rerr
 		}
-		return decodeWav(b)
+		sr, x, _, derr := dsp.ReadWav(b)
+		if derr != nil {
+			return 0, nil, derr
+		}
+		return sr, x, nil
 	case ".flac":
 		return decodeFlac(path)
 	default:
 		return 0, nil, fmt.Errorf("%s: unsupported input (want .wav or .flac; convert MP3/OGG first)", path)
 	}
-}
-
-// decodeWav parses RIFF/WAVE PCM (16 or 24-bit).
-func decodeWav(b []byte) (sr int, x []float64, err error) {
-	if len(b) < 44 || string(b[0:4]) != "RIFF" || string(b[8:12]) != "WAVE" {
-		return 0, nil, fmt.Errorf("not a RIFF/WAVE file")
-	}
-	var data []byte
-	channels, sampleRate, bits := 0, 0, 0
-	pos := 12
-	for pos+8 <= len(b) {
-		id := string(b[pos : pos+4])
-		size := int(b[pos+4]) | int(b[pos+5])<<8 | int(b[pos+6])<<16 | int(b[pos+7])<<24
-		body := b[pos+8 : min(pos+8+size, len(b))]
-		switch id {
-		case "fmt ":
-			if len(body) < 16 {
-				return 0, nil, fmt.Errorf("short fmt chunk")
-			}
-			if int(body[0])|int(body[1])<<8 != 1 {
-				return 0, nil, fmt.Errorf("unsupported WAV format (want PCM)")
-			}
-			channels = int(body[2]) | int(body[3])<<8
-			sampleRate = int(body[4]) | int(body[5])<<8 | int(body[6])<<16 | int(body[7])<<24
-			bits = int(body[14]) | int(body[15])<<8
-		case "data":
-			data = body
-		}
-		pos += 8 + size + size%2
-	}
-	if channels != 2 || data == nil || (bits != 16 && bits != 24) {
-		return 0, nil, fmt.Errorf("want stereo 16/24-bit PCM WAV (got %d ch, %d bits)", channels, bits)
-	}
-
-	switch bits {
-	case 16:
-		x = make([]float64, len(data)/2)
-		for i := range x {
-			x[i] = float64(int16(int(data[2*i])|int(data[2*i+1])<<8)) / 32768
-		}
-	case 24:
-		x = make([]float64, len(data)/3)
-		for i := range x {
-			v := int32(data[3*i]) | int32(data[3*i+1])<<8 | int32(data[3*i+2])<<16
-			if v&0x800000 != 0 {
-				v |= ^int32(0xFFFFFF) // sign-extend
-			}
-			x[i] = float64(v) / 8388608
-		}
-	}
-	return sampleRate, x, nil
 }
 
 // decodeFlac decodes via mewkiz/flac (the Phase 3 dependency).

@@ -82,13 +82,26 @@ func Deinterleave(x []float64) (l, r []float64) {
 
 // ReadWav16 parses a 16-bit PCM WAV file into (sample rate, interleaved
 // float samples scaled to ±1). Supports plain RIFF/WAVE with fmt and data
-// chunks; good enough for engine output and the SBaGen binary's renders.
+// ReadWav16 parses a 16-bit PCM WAV file into (sample rate, interleaved
+// float samples scaled to ±1). See ReadWav for the general form.
 func ReadWav16(b []byte) (sr int, x []float64, err error) {
+	sr, x, bits, err := readWav(b, 16)
+	_ = bits
+	return sr, x, err
+}
+
+// ReadWav parses a 16- or 24-bit PCM WAV file into (sample rate,
+// interleaved float samples scaled to ±1, bit depth).
+func ReadWav(b []byte) (sr int, x []float64, bits int, err error) {
+	return readWav(b, 16, 24)
+}
+
+func readWav(b []byte, allowedBits ...int) (sr int, x []float64, bits int, err error) {
 	if len(b) < 44 || string(b[0:4]) != "RIFF" || string(b[8:12]) != "WAVE" {
-		return 0, nil, errors.New("dsp: not a RIFF/WAVE file")
+		return 0, nil, 0, errors.New("dsp: not a RIFF/WAVE file")
 	}
 	var data []byte
-	bits := -1
+	bits = -1
 	channels, sampleRate := 0, 0
 	pos := 12
 	for pos+8 <= len(b) {
@@ -98,11 +111,11 @@ func ReadWav16(b []byte) (sr int, x []float64, err error) {
 		switch id {
 		case "fmt ":
 			if len(body) < 16 {
-				return 0, nil, errors.New("dsp: short fmt chunk")
+				return 0, nil, 0, errors.New("dsp: short fmt chunk")
 			}
 			format := binary.LittleEndian.Uint16(body[0:2])
 			if format != 1 {
-				return 0, nil, fmt.Errorf("dsp: unsupported WAV format %d (want PCM)", format)
+				return 0, nil, 0, fmt.Errorf("dsp: unsupported WAV format %d (want PCM)", format)
 			}
 			channels = int(binary.LittleEndian.Uint16(body[2:4]))
 			sampleRate = int(binary.LittleEndian.Uint32(body[4:8]))
@@ -112,12 +125,31 @@ func ReadWav16(b []byte) (sr int, x []float64, err error) {
 		}
 		pos += 8 + size + size%2 // chunks are word-aligned
 	}
-	if channels == 0 || bits != 16 || data == nil {
-		return 0, nil, fmt.Errorf("dsp: not a 16-bit PCM WAV (channels=%d bits=%d data=%v)", channels, bits, data != nil)
+	okBits := false
+	for _, a := range allowedBits {
+		if bits == a {
+			okBits = true
+		}
 	}
-	x = make([]float64, len(data)/2)
-	for i := range x {
-		x[i] = float64(int16(binary.LittleEndian.Uint16(data[2*i:2*i+2]))) / 32768
+	if channels != 2 || !okBits || data == nil {
+		return 0, nil, 0, fmt.Errorf("dsp: not a supported PCM WAV (channels=%d bits=%d data=%v)", channels, bits, data != nil)
 	}
-	return sampleRate, x, nil
+
+	switch bits {
+	case 16:
+		x = make([]float64, len(data)/2)
+		for i := range x {
+			x[i] = float64(int16(binary.LittleEndian.Uint16(data[2*i:2*i+2]))) / 32768
+		}
+	case 24:
+		x = make([]float64, len(data)/3)
+		for i := range x {
+			v := int32(data[3*i]) | int32(data[3*i+1])<<8 | int32(data[3*i+2])<<16
+			if v&0x800000 != 0 {
+				v |= ^int32(0xFFFFFF) // sign-extend
+			}
+			x[i] = float64(v) / 8388608
+		}
+	}
+	return sampleRate, x, bits, nil
 }
