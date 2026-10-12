@@ -10,6 +10,8 @@ package seq
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -79,6 +81,7 @@ type Warning struct {
 
 // Sequence is a parsed .sbg file.
 type Sequence struct {
+	Dir         string   // session file's directory (ParseFile only); -m beds resolve against it
 	Description []string // '##' lines, printed on run like sbagen does
 	Opts        Options
 	Sets        map[string]ToneSet
@@ -92,14 +95,31 @@ type Sequence struct {
 var day = 24 * time.Hour
 
 // Parse reads a .sbg sequence. Syntax errors return an error; anything
-// merely unsupported (mix/bell/spin/wave voices, -m/-p options, explicit
+// merely unsupported (bell/spin/wave voices, -p options, explicit
 // fade/slide specs) parses into the sequence with a Warning instead.
+// Use ParseFile when the session references a -m soundtrack, so
+// relative paths resolve.
 func Parse(src string) (*Sequence, error) {
 	p := &parser{seq: &Sequence{Sets: map[string]ToneSet{}}}
 	if err := p.run(src); err != nil {
 		return nil, fmt.Errorf("seq: %w", err)
 	}
 	return p.seq, nil
+}
+
+// ParseFile reads a .sbg sequence from disk, recording its directory for
+// resolving a -m soundtrack bed.
+func ParseFile(path string) (*Sequence, error) {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("seq: %w", err)
+	}
+	s, err := Parse(string(b))
+	if err != nil {
+		return nil, fmt.Errorf("seq: %s: %w", path, err)
+	}
+	s.Dir = filepath.Dir(path)
+	return s, nil
 }
 
 type parser struct {
@@ -383,7 +403,6 @@ func (p *parser) optionLine(line string) {
 			p.seq.Opts.Quiet = true
 		case tok == "-m":
 			p.seq.Opts.Mix = next()
-			p.warn(p.line, fmt.Sprintf("mix input -m %s not supported yet; ignored (native brown noise can replace ogg beds)", p.seq.Opts.Mix))
 		case tok == "-L":
 			p.seq.Opts.Length = next()
 		case tok == "-F":

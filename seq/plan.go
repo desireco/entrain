@@ -3,8 +3,12 @@ package seq
 import (
 	"fmt"
 	"math"
+	"os"
+	"path/filepath"
 	"sort"
 	"time"
+
+	"github.com/desireco/entrain/internal/dsp"
 )
 
 // DefaultCrossfade is sbagen's default: fades happen within 30 s either
@@ -30,9 +34,11 @@ type BP struct {
 // the same frequencies appear in consecutive tone-sets — only the
 // amplitude glides.
 type VoicePlan struct {
-	Key  string
-	Spec ToneSpec
-	Env  []BP // sorted by T
+	Key     string
+	Spec    ToneSpec
+	Env     []BP      // sorted by T
+	Bed     []float64 // Mix only: loop-prepared interleaved bed audio
+	BedRate int       // Mix only: the bed's sample rate
 }
 
 // AmpAt evaluates the envelope at t (render amplitude, 0 outside).
@@ -60,6 +66,9 @@ type Plan struct {
 	Events     []Event // clipped to the render span, for display
 	Voices     []VoicePlan
 	Warnings   []Warning
+
+	bed     []float64 // the -m soundtrack, loop-prepared
+	bedRate int
 }
 
 // PlanOpts configures planning. Zero values select the defaults; a zero
@@ -126,11 +135,64 @@ func BuildPlan(s *Sequence, opts PlanOpts) (*Plan, error) {
 		clipped = append(clipped, Event{When: plan.End, Set: ""})
 	}
 
+	// A mix/amp voice needs the -m bed; load it before envelope building
+	// so its component can carry the audio.
+	if usesMix(s) {
+		bed, bedRate, err := loadBed(s)
+		if err != nil {
+			return nil, err
+		}
+		plan.bed, plan.bedRate = bed, bedRate
+	}
+
 	buildEnvelopes(plan, clipped)
 	if len(plan.Voices) == 0 {
 		plan.Warnings = append(plan.Warnings, Warning{Msg: "no renderable voices in this sequence (output is silence)"})
 	}
 	return plan, nil
+}
+
+// usesMix reports whether any tone-set references a mix voice.
+func usesMix(s *Sequence) bool {
+	for _, name := range s.SetOrder {
+		for _, sp := range s.Sets[name].Specs {
+			if sp.Kind == Mix {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// loadBed reads the -m soundtrack (16/24-bit PCM WAV, stereo). Seamless
+// looping is the renderer's job (bedPlayer crossfades the wrap point) —
+// an improvement over the vendored fork, which stops when the file ends.
+func loadBed(s *Sequence) ([]float64, int, error) {
+	if s.Opts.Mix == "" {
+		return nil, 0, fmt.Errorf("seq: mix/amp voices used but no -m file given")
+	}
+	candidates := []string{s.Opts.Mix}
+	if s.Dir != "" && !filepath.IsAbs(s.Opts.Mix) {
+		candidates = append(candidates, filepath.Join(s.Dir, s.Opts.Mix))
+	}
+	var raw []byte
+	var path string
+	for _, c := range candidates {
+		b, err := os.ReadFile(c)
+		if err == nil {
+			raw, path = b, c
+			break
+		}
+	}
+	if raw == nil {
+		return nil, 0, fmt.Errorf("seq: -m bed %s not found (looked in %v)", s.Opts.Mix, candidates)
+	}
+	sr, x, _, err := dsp.ReadWav(raw)
+	if err != nil {
+		return nil, 0, fmt.Errorf("seq: -m bed %s: %w", path, err)
+	}
+
+	return x, sr, nil
 }
 
 // dedupeEvents keeps the last event at each identical time.
@@ -188,7 +250,7 @@ func buildEnvelopes(plan *Plan, events []Event) {
 			continue
 		}
 		for _, sp := range ts.Specs {
-			if sp.Kind != White && sp.Kind != Pink && sp.Kind != Brown && sp.Kind != Binaural {
+			if sp.Kind != White && sp.Kind != Pink && sp.Kind != Brown && sp.Kind != Binaural && sp.Kind != Mix {
 				continue
 			}
 			k := keyOf(sp)
@@ -229,7 +291,11 @@ func buildEnvelopes(plan *Plan, events []Event) {
 		}
 
 		c.env = normalizeEnv(c.env, plan.Start, plan.End)
-		plan.Voices = append(plan.Voices, VoicePlan{Key: k, Spec: c.spec, Env: c.env})
+		vp := VoicePlan{Key: k, Spec: c.spec, Env: c.env}
+		if c.spec.Kind == Mix {
+			vp.Bed, vp.BedRate = plan.bed, plan.bedRate
+		}
+		plan.Voices = append(plan.Voices, vp)
 	}
 }
 
@@ -269,6 +335,8 @@ func keyOf(sp ToneSpec) string {
 		return "pink"
 	case Brown:
 		return "brown"
+	case Mix:
+		return "mix"
 	}
 	l, r := EarFreqs(sp)
 	return fmt.Sprintf("bin:%.6g/%.6g", l, r)

@@ -123,14 +123,9 @@ func cmdRender(args []string, stdout, stderr io.Writer) int {
 	if !strings.HasSuffix(path, ".sbg") {
 		path += ".sbg"
 	}
-	src, err := os.ReadFile(path)
+	s, err := seq.ParseFile(path)
 	if err != nil {
 		fmt.Fprintf(stderr, "entrain: %v\n", err)
-		return 1
-	}
-	s, err := seq.Parse(string(src))
-	if err != nil {
-		fmt.Fprintf(stderr, "entrain: %s: %v\n", path, err)
 		return 1
 	}
 

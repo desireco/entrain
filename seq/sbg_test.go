@@ -120,7 +120,6 @@ func TestParseUnsupportedVoicesAndOptions(t *testing.T) {
 		warns = append(warns, w.Msg)
 	}
 	for _, want := range []string{
-		"mix input -m bed.ogg not supported yet",
 		"bell voice not supported yet",
 		"spin voice not supported yet",
 		"wave voices not supported yet",
