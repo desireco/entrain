@@ -188,7 +188,7 @@ func buildEnvelopes(plan *Plan, events []Event) {
 			continue
 		}
 		for _, sp := range ts.Specs {
-			if sp.Kind != Pink && sp.Kind != Binaural {
+			if sp.Kind != White && sp.Kind != Pink && sp.Kind != Brown && sp.Kind != Binaural {
 				continue
 			}
 			k := keyOf(sp)
@@ -262,8 +262,13 @@ func normalizeEnv(env []BP, start, end time.Duration) []BP {
 // the same carrier and beat are different components, and a beat change
 // is a fade, not a glide — frequency slides are the later '=' work).
 func keyOf(sp ToneSpec) string {
-	if sp.Kind == Pink {
+	switch sp.Kind {
+	case White:
+		return "white"
+	case Pink:
 		return "pink"
+	case Brown:
+		return "brown"
 	}
 	l, r := EarFreqs(sp)
 	return fmt.Sprintf("bin:%.6g/%.6g", l, r)
@@ -284,7 +289,7 @@ func EarFreqs(sp ToneSpec) (left, right float64) {
 // at amp/100 peak (sbagen convention), pink scaled to sbagen's measured
 // bed loudness.
 func renderAmp(sp ToneSpec) float64 {
-	if sp.Kind == Pink {
+	if sp.Kind == White || sp.Kind == Pink || sp.Kind == Brown {
 		return sp.Amp / 100 * pinkCalibration
 	}
 	return sp.Amp / 100

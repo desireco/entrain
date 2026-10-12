@@ -27,8 +27,8 @@ func (p *Plan) Render(rate int) []float64 {
 		vp := &p.Voices[i]
 		var v synth.StereoVoice
 		switch vp.Spec.Kind {
-		case Pink:
-			v = synth.NewNoise(sr, synth.Pink, keySeed(vp.Key))
+		case White, Pink, Brown:
+			v = synth.NewNoise(sr, synth.NoiseColor(vp.Spec.Kind-1), keySeed(vp.Key))
 		case Binaural:
 			l, r := EarFreqs(vp.Spec)
 			v = synth.NewBinaural(sr, (l+r)/2, r-l)

@@ -134,3 +134,36 @@ func TestRender48kSmoke(t *testing.T) {
 		t.Errorf("48k L@200 = %.0f, want %.0f ± 3%%", got, 0.30*half)
 	}
 }
+
+func TestRenderBrownBedContinuity(t *testing.T) {
+	// brown/30 behaves like pink: bed glides amplitude across changeovers
+	// with no dropout, at the shared sbagen-calibrated loudness.
+	src := `
+a: brown/30
+b: brown/50
+off: -
+
+NOW a
++00:00:10 b
++00:00:20 off
+`
+	s, err := seq.Parse(src)
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, err := seq.BuildPlan(s, seq.PlanOpts{Crossfade: 2 * time.Second})
+	if err != nil {
+		t.Fatal(err)
+	}
+	const rate = 44100
+	l := window(p.Render(rate), rate, 0, 20)
+	before := dsp.RMS(l[5*rate : 8*rate])
+	during := dsp.RMS(l[95*rate/10 : 105*rate/10])
+	after := dsp.RMS(l[12*rate : 15*rate])
+	if math.Abs(before-0.30*0.155) > 0.15*0.30*0.155 || math.Abs(after-0.50*0.155) > 0.15*0.50*0.155 {
+		t.Fatalf("levels: before=%.4f after=%.4f", before, after)
+	}
+	if during < before*0.9 {
+		t.Errorf("dropout at changeover: during=%.4f before=%.4f", during, before)
+	}
+}
