@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>entrain — the new SBaGen</title>
-<meta name="description" content="entrain is a clean-room Go reimplementation of SBaGen: render your .sbg binaural-beat sessions to WAV, FLAC and MP3 from a single static binary. MIT licensed.">
+<title>SBaGen — binaural beat sessions, rebuilt in Go</title>
+<meta name="description" content="SBaGen lives on: render .sbg binaural-beat sessions to WAV, FLAC and MP3 with the new clean-room Go implementation by the entrain project. MIT licensed.">
 <link rel="canonical" href="https://desireco.github.io/entrain/">
-<meta property="og:title" content="entrain — the new SBaGen">
-<meta property="og:description" content="Render SBaGen .sbg sessions to WAV, FLAC and MP3. Clean-room Go, MIT licensed, single static binary.">
+<meta property="og:title" content="SBaGen — the new SBaGen">
+<meta property="og:description" content="Render .sbg sessions to WAV, FLAC and MP3. Clean-room Go by the entrain project, MIT licensed, single static binary.">
 <meta property="og:url" content="https://desireco.github.io/entrain/">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%237c6cff'/%3E%3Cpath d='M4 16 Q 8 6 12 16 T 20 16 T 28 16' stroke='white' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
@@ -147,7 +147,7 @@
 
 <header class="nav">
   <div class="container nav-inner">
-    <a class="brand" href="#">entrain</a>
+    <a class="brand" href="#">SBaGen</a>
     <nav>
       <a href="#heritage">Heritage</a>
       <a href="#features">Features</a>
@@ -162,7 +162,7 @@
     <p class="kicker">Clean-room Go rewrite &middot; MIT licensed &middot; v0.1.0</p>
     <h1>The new <span class="sba">SBaGen</span>.</h1>
     <p class="lede">
-      <strong>entrain</strong> renders your SBaGen <code>.sbg</code> sessions — binaural beats,
+      <strong>SBaGen</strong> renders your <code>.sbg</code> sessions — binaural beats,
       noise beds, crossfades — to modern WAV, FLAC and MP3 from a single static binary.
       Your sessions keep working.
     </p>
@@ -192,8 +192,8 @@
   <section id="heritage" class="container">
     <h2>The SBaGen family</h2>
     <p class="section-lede">
-      entrain stands on the shoulders of the original. If you are exploring brainwave audio,
-      all three are worth knowing — here is the lineage.
+      The new SBaGen stands on the shoulders of the original. If you are exploring brainwave
+      audio, all three are worth knowing — here is the lineage.
     </p>
     <div class="cards">
       <div class="card">
@@ -203,7 +203,7 @@
         <p>
           The classic sequenced binaural-beat generator: powerful, battle-tested C from another
           era, GPLv2, and the <strong>.sbg format that still defines the workflow</strong>.
-          It remains the reference implementation — entrain validates its output against it.
+          It remains the reference implementation — the new SBaGen validates its output against it.
         </p>
         <div class="links">
           <a href="https://uazu.net/sbagen/">uazu.net/sbagen &rarr;</a>
@@ -226,16 +226,17 @@
       </div>
       <div class="card now">
         <span class="badge">you are here</span>
-        <span class="era">The rewrite &middot; 2026</span>
-        <h3>entrain</h3>
+        <span class="era">The new generation &middot; 2026</span>
+        <h3>SBaGen</h3>
         <p class="by">clean-room Go, MIT licensed</p>
         <p>
-          No SBaGen code, same workflow: reads <strong>.sbg</strong> today, authors a typed TOML
-          format next. Renders WAV / FLAC / MP3 with true tone continuity, and ships
+          The workflow continues: reads <strong>.sbg</strong> today, authors a typed TOML format
+          next. Renders WAV / FLAC / MP3 with true tone continuity, and ships
           <strong>beatscope</strong> so you can verify what any renderer put in a file.
+          Implemented by the entrain project.
         </p>
         <div class="links">
-          <a href="https://github.com/desireco/entrain">source &rarr;</a>
+          <a href="https://github.com/desireco/entrain">entrain project &rarr;</a>
           <a href="https://github.com/desireco/entrain/releases">releases &rarr;</a>
         </div>
       </div>
@@ -243,7 +244,7 @@
   </section>
 
   <section id="features" class="container">
-    <h2>What entrain does</h2>
+    <h2>What SBaGen does</h2>
     <p class="section-lede">One static binary, four subcommands, no cgo in the core pipeline.</p>
     <div class="features">
       <div class="feat">
@@ -293,6 +294,8 @@ entrain focus-10 --dry-run               <span class="c"># preview the timeline 
 
 <span class="c"># verify what ended up in the file</span>
 beatscope focus.wav</pre>
+    <p class="note">The CLI and engine live in the <a href="https://github.com/desireco/entrain">entrain
+       project</a> — a clean-room Go implementation of the SBaGen workflow.</p>
     <p class="note">A minimal session — one hour of 40 Hz gamma with a pink-noise bed:</p>
 <pre class="block"><span class="c">## One-hour focus: 40 Hz gamma + 24 Hz beta over pink noise</span>
 <span class="k">all-off:</span> -
@@ -307,11 +310,12 @@ beatscope focus.wav</pre>
   <section id="faq" class="container faq">
     <h2>Questions</h2>
     <details>
-      <summary>Is entrain affiliated with SBaGen?</summary>
-      <p>No. entrain is an independent clean-room reimplementation — no SBaGen code was read or
-         copied, and the project is not endorsed by Jim Peters. For the classic tool itself, see
+      <summary>Is this SBaGen affiliated with the original?</summary>
+      <p>No. The new SBaGen is an independent clean-room reimplementation — no original code was
+         read or copied, and it is not endorsed by Jim Peters. For the classic tool itself, see
          <a href="https://uazu.net/sbagen/">uazu.net/sbagen</a> and the
-         <a href="https://github.com/ruanklein/sbagen-plus">SBaGen+ fork</a>.</p>
+         <a href="https://github.com/ruanklein/sbagen-plus">SBaGen+ fork</a>. The implementation
+         lives in the <a href="https://github.com/desireco/entrain">entrain project</a>.</p>
     </details>
     <details>
       <summary>Can I use the rendered audio commercially?</summary>
@@ -329,9 +333,10 @@ beatscope focus.wav</pre>
 
 <footer>
   <div class="container">
-    <p><strong>entrain</strong> — part of EntrainSpace. &copy; 2026 Zeljko Dakic. MIT licensed.</p>
-    <p>SBaGen is a project by Jim Peters; SBaGen+ is maintained by Ruan Klein.
-       entrain is an independent clean-room reimplementation and is not affiliated with or endorsed by either.</p>
+    <p><strong>SBaGen</strong> — the new generation. An EntrainSpace project, implemented by the
+       <a href="https://github.com/desireco/entrain">entrain</a> engine. &copy; 2026 Zeljko Dakic. MIT licensed.</p>
+    <p>The original SBaGen is a project by Jim Peters; SBaGen+ is maintained by Ruan Klein.
+       This implementation is independent and clean-room — not affiliated with or endorsed by either.</p>
     <div class="links">
       <a href="https://uazu.net/sbagen/">SBaGen (original)</a>
       <a href="https://github.com/ruanklein/sbagen-plus">SBaGen+</a>
