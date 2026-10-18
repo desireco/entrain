@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>entrain — the new SBaGen</title>
+<meta name="description" content="entrain is a clean-room Go reimplementation of SBaGen: render your .sbg binaural-beat sessions to WAV, FLAC and MP3 from a single static binary. MIT licensed.">
+<link rel="canonical" href="https://desireco.github.io/entrain/">
+<meta property="og:title" content="entrain — the new SBaGen">
+<meta property="og:description" content="Render SBaGen .sbg sessions to WAV, FLAC and MP3. Clean-room Go, MIT licensed, single static binary.">
+<meta property="og:url" content="https://desireco.github.io/entrain/">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%237c6cff'/%3E%3Cpath d='M4 16 Q 8 6 12 16 T 20 16 T 28 16' stroke='white' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #0b0e14;
+    --panel: #12161f;
+    --border: #232a38;
+    --text: #e6e9f0;
+    --muted: #98a2b6;
+    --accent: #7c6cff;
+    --accent2: #4cc9f0;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .container { max-width: 1060px; margin: 0 auto; padding: 0 24px; }
+
+  /* Nav */
+  header.nav {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(11, 14, 20, 0.82);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+  .brand { font-family: var(--mono); font-weight: 700; font-size: 1.05rem; color: var(--text); }
+  .brand:hover { text-decoration: none; color: var(--accent2); }
+  .nav nav { display: flex; gap: 22px; flex-wrap: wrap; }
+  .nav nav a { color: var(--muted); font-size: 0.92rem; }
+  .nav nav a:hover { color: var(--text); text-decoration: none; }
+
+  /* Hero */
+  .hero { position: relative; padding: 88px 0 40px; overflow: hidden; }
+  .kicker {
+    font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--accent2); margin-bottom: 18px;
+  }
+  h1 { font-size: clamp(2.4rem, 6vw, 3.6rem); line-height: 1.12; letter-spacing: -0.02em; }
+  h1 .sba {
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .lede { max-width: 640px; margin: 22px 0 30px; font-size: 1.15rem; color: var(--muted); }
+  .lede code { font-family: var(--mono); font-size: 0.9em; color: var(--text); }
+  .cta { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 40px; }
+  .btn {
+    display: inline-block; padding: 11px 22px; border-radius: 8px;
+    font-weight: 600; font-size: 0.95rem; border: 1px solid var(--border);
+    color: var(--text); transition: border-color .15s, transform .15s;
+  }
+  .btn:hover { text-decoration: none; border-color: var(--accent2); transform: translateY(-1px); }
+  .btn.primary {
+    background: linear-gradient(90deg, var(--accent), #5a8df0);
+    border: none; color: #fff;
+  }
+  .term {
+    font-family: var(--mono); font-size: 0.85rem;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 18px; max-width: 720px; overflow-x: auto; color: var(--muted);
+  }
+  .term .p { color: var(--accent2); }
+  .term .o { color: var(--text); }
+  .wave { position: absolute; inset: auto 0 0; height: 120px; pointer-events: none; }
+  .wave svg { width: 100%; height: 100%; display: block; }
+  .wave .fast { animation: pulse 4s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 0.25; } 50% { opacity: 0.55; } }
+  @media (prefers-reduced-motion: reduce) { .wave .fast { animation: none; } html { scroll-behavior: auto; } }
+
+  /* Sections */
+  section { padding: 72px 0 12px; }
+  h2 { font-size: 1.7rem; letter-spacing: -0.01em; margin-bottom: 10px; }
+  .section-lede { color: var(--muted); max-width: 680px; margin-bottom: 34px; }
+
+  /* Heritage cards */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
+  .card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    padding: 24px; display: flex; flex-direction: column; gap: 10px;
+  }
+  .card.now { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 12px 40px -18px rgba(124, 108, 255, 0.45); }
+  .card .era { font-family: var(--mono); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent2); }
+  .card.now .era { color: var(--accent); }
+  .card h3 { font-size: 1.2rem; }
+  .card .by { color: var(--muted); font-size: 0.88rem; margin-top: -6px; }
+  .card p { color: var(--muted); font-size: 0.93rem; flex: 1; }
+  .card p strong { color: var(--text); font-weight: 600; }
+  .card .links { display: flex; flex-wrap: wrap; gap: 14px; font-size: 0.9rem; }
+  .badge {
+    align-self: flex-start; font-size: 0.72rem; font-family: var(--mono);
+    padding: 3px 9px; border-radius: 99px; border: 1px solid var(--accent); color: var(--accent);
+  }
+
+  /* Features */
+  .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
+  .feat { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 22px; }
+  .feat h3 { font-size: 1.02rem; margin-bottom: 8px; }
+  .feat h3 .ic { margin-right: 8px; }
+  .feat p { color: var(--muted); font-size: 0.92rem; }
+  .feat code { font-family: var(--mono); font-size: 0.85em; color: var(--accent2); }
+
+  /* Quick start */
+  pre.block {
+    font-family: var(--mono); font-size: 0.88rem; line-height: 1.7;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px 22px; overflow-x: auto; margin: 14px 0 22px;
+  }
+  pre.block .c { color: #5b657a; }
+  pre.block .k { color: var(--accent2); }
+  .note { color: var(--muted); font-size: 0.9rem; margin-bottom: 8px; }
+
+  /* FAQ */
+  .faq details {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 20px; margin-bottom: 12px;
+  }
+  .faq summary { cursor: pointer; font-weight: 600; }
+  .faq details p { color: var(--muted); margin-top: 10px; font-size: 0.94rem; }
+
+  /* Footer */
+  footer {
+    margin-top: 80px; border-top: 1px solid var(--border);
+    padding: 34px 0 44px; color: var(--muted); font-size: 0.88rem;
+  }
+  footer .links { margin-top: 10px; display: flex; gap: 18px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="container nav-inner">
+    <a class="brand" href="#">entrain</a>
+    <nav>
+      <a href="#heritage">Heritage</a>
+      <a href="#features">Features</a>
+      <a href="#quickstart">Quick start</a>
+      <a href="https://github.com/desireco/entrain">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero container">
+    <p class="kicker">Clean-room Go rewrite &middot; MIT licensed &middot; v0.1.0</p>
+    <h1>The new <span class="sba">SBaGen</span>.</h1>
+    <p class="lede">
+      <strong>entrain</strong> renders your SBaGen <code>.sbg</code> sessions — binaural beats,
+      noise beds, crossfades — to modern WAV, FLAC and MP3 from a single static binary.
+      Your sessions keep working.
+    </p>
+    <div class="cta">
+      <a class="btn primary" href="#quickstart">Get started</a>
+      <a class="btn" href="https://github.com/desireco/entrain/releases">Download</a>
+      <a class="btn" href="https://github.com/desireco/entrain">GitHub</a>
+    </div>
+    <pre class="term"><span class="p">$</span> entrain focus-10 -f mp3
+<span class="o">focus-10.mp3 &middot; 40 Hz γ + 24 Hz β over pink noise &middot; 320 kbps</span></pre>
+    <div class="wave" aria-hidden="true">
+      <svg viewBox="0 0 1600 120" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="wg" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#7c6cff"/>
+            <stop offset="1" stop-color="#4cc9f0"/>
+          </linearGradient>
+        </defs>
+        <path fill="none" stroke="url(#wg)" stroke-width="2" opacity="0.5"
+          d="M0 60 Q 50 0 100 60 T 200 60 T 300 60 T 400 60 T 500 60 T 600 60 T 700 60 T 800 60 T 900 60 T 1000 60 T 1100 60 T 1200 60 T 1300 60 T 1400 60 T 1500 60 T 1600 60"/>
+        <path class="fast" fill="none" stroke="url(#wg)" stroke-width="1.5"
+          d="M0 60 Q 20 30 40 60 T 80 60 T 120 60 T 160 60 T 200 60 T 240 60 T 280 60 T 320 60 T 360 60 T 400 60 T 440 60 T 480 60 T 520 60 T 560 60 T 600 60 T 640 60 T 680 60 T 720 60 T 760 60 T 800 60 T 840 60 T 880 60 T 920 60 T 960 60 T 1000 60 T 1040 60 T 1080 60 T 1120 60 T 1160 60 T 1200 60 T 1240 60 T 1280 60 T 1320 60 T 1360 60 T 1400 60 T 1440 60 T 1480 60 T 1520 60 T 1560 60 T 1600 60"/>
+      </svg>
+    </div>
+  </section>
+
+  <section id="heritage" class="container">
+    <h2>The SBaGen family</h2>
+    <p class="section-lede">
+      entrain stands on the shoulders of the original. If you are exploring brainwave audio,
+      all three are worth knowing — here is the lineage.
+    </p>
+    <div class="cards">
+      <div class="card">
+        <span class="era">The original &middot; 1999</span>
+        <h3>SBaGen</h3>
+        <p class="by">by Jim Peters</p>
+        <p>
+          The classic sequenced binaural-beat generator: powerful, battle-tested C from another
+          era, GPLv2, and the <strong>.sbg format that still defines the workflow</strong>.
+          It remains the reference implementation — entrain validates its output against it.
+        </p>
+        <div class="links">
+          <a href="https://uazu.net/sbagen/">uazu.net/sbagen &rarr;</a>
+        </div>
+      </div>
+      <div class="card">
+        <span class="era">The fork &middot; modern builds</span>
+        <h3>SBaGen+</h3>
+        <p class="by">maintained by Ruan Klein</p>
+        <p>
+          A community fork that keeps the original alive on modern systems: fresh binaries for
+          Linux, macOS and Windows, Docker images, and isochronic tones on top of binaural beats.
+          Its own development has paused — the ideas continue in its successor
+          <strong>SynapSeq</strong>.
+        </p>
+        <div class="links">
+          <a href="https://github.com/ruanklein/sbagen-plus">sbagen-plus &rarr;</a>
+          <a href="https://github.com/ruanklein/synapseq">synapseq &rarr;</a>
+        </div>
+      </div>
+      <div class="card now">
+        <span class="badge">you are here</span>
+        <span class="era">The rewrite &middot; 2026</span>
+        <h3>entrain</h3>
+        <p class="by">clean-room Go, MIT licensed</p>
+        <p>
+          No SBaGen code, same workflow: reads <strong>.sbg</strong> today, authors a typed TOML
+          format next. Renders WAV / FLAC / MP3 with true tone continuity, and ships
+          <strong>beatscope</strong> so you can verify what any renderer put in a file.
+        </p>
+        <div class="links">
+          <a href="https://github.com/desireco/entrain">source &rarr;</a>
+          <a href="https://github.com/desireco/entrain/releases">releases &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="features" class="container">
+    <h2>What entrain does</h2>
+    <p class="section-lede">One static binary, four subcommands, no cgo in the core pipeline.</p>
+    <div class="features">
+      <div class="feat">
+        <h3><span class="ic">&#9835;</span>.sbg compatible</h3>
+        <p>Binaural tone-sets, pink/white/brown beds, <code>NOW</code> and relative times,
+           nested blocks — and sbagen's 30-second crossfades with real tone continuity
+           across changeovers.</p>
+      </div>
+      <div class="feat">
+        <h3><span class="ic">&#9636;</span>Modern output</h3>
+        <p>WAV and FLAC at 16/24-bit (dithered), MP3 up to 320 kbps. Float64 pipeline,
+           deterministic renders — the same session always produces the same bytes.</p>
+      </div>
+      <div class="feat">
+        <h3><span class="ic">&#127911;</span>Noise palette</h3>
+        <p>White, pink and brown noise with correct spectral slopes and decorrelated stereo —
+           plus arbitrary 1/f<sup>&alpha;</sup> slopes via <code>noisemaker</code>.</p>
+      </div>
+      <div class="feat">
+        <h3><span class="ic">&#128269;</span>beatscope</h3>
+        <p>Analyze any audio file — carriers, beat frequency, confidence per pair.
+           A trust-but-verify tool for entrain, sbagen, or anything else.</p>
+      </div>
+      <div class="feat">
+        <h3><span class="ic">&#9889;</span>Instant to try</h3>
+        <p>Pure Go, zero configuration: <code>go install</code> or grab a release binary
+           for Linux, macOS and Windows.</p>
+      </div>
+      <div class="feat">
+        <h3><span class="ic">&#9878;</span>MIT licensed</h3>
+        <p>Embed it anywhere, ship it in products. Rendered audio carries no license —
+           your output is yours.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="quickstart" class="container">
+    <h2>Quick start</h2>
+    <p class="section-lede">Install, render, verify — all from the terminal.</p>
+<pre class="block"><span class="c"># install</span>
+go install github.com/desireco/entrain/cmd/entrain@latest
+go install github.com/desireco/entrain/cmd/beatscope@latest
+
+<span class="c"># render an existing .sbg session</span>
+entrain render focus.sbg                 <span class="c"># default WAV; -f mp3 / -f flac, -b 24 for 24-bit</span>
+entrain focus-10 --dry-run               <span class="c"># preview the timeline plan first</span>
+
+<span class="c"># verify what ended up in the file</span>
+beatscope focus.wav</pre>
+    <p class="note">A minimal session — one hour of 40 Hz gamma with a pink-noise bed:</p>
+<pre class="block"><span class="c">## One-hour focus: 40 Hz gamma + 24 Hz beta over pink noise</span>
+<span class="k">all-off:</span> -
+<span class="k">focus:</span>   pink/20 180+40/30 320+24/25
+
+<span class="k">0:00:00</span>  focus
+<span class="k">1:00:00</span>  all-off</pre>
+    <p class="note">&#127911; Headphones required — binaural beats collapse on speakers. Keep the volume low;
+       the tones should sit just above the noise bed.</p>
+  </section>
+
+  <section id="faq" class="container faq">
+    <h2>Questions</h2>
+    <details>
+      <summary>Is entrain affiliated with SBaGen?</summary>
+      <p>No. entrain is an independent clean-room reimplementation — no SBaGen code was read or
+         copied, and the project is not endorsed by Jim Peters. For the classic tool itself, see
+         <a href="https://uazu.net/sbagen/">uazu.net/sbagen</a> and the
+         <a href="https://github.com/ruanklein/sbagen-plus">SBaGen+ fork</a>.</p>
+    </details>
+    <details>
+      <summary>Can I use the rendered audio commercially?</summary>
+      <p>Yes. entrain is MIT licensed and rendered audio carries no license — the GPLv2 covers
+         the original SBaGen program, not the audio it or entrain produces.</p>
+    </details>
+    <details>
+      <summary>What's next?</summary>
+      <p>A native TOML session format ("trains"), EMDR bilateral voices, live playback, and a
+         web player — the roadmap lives in the
+         <a href="https://github.com/desireco/entrain#status--roadmap">README</a>.</p>
+    </details>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <p><strong>entrain</strong> — part of EntrainSpace. &copy; 2026 Zeljko Dakic. MIT licensed.</p>
+    <p>SBaGen is a project by Jim Peters; SBaGen+ is maintained by Ruan Klein.
+       entrain is an independent clean-room reimplementation and is not affiliated with or endorsed by either.</p>
+    <div class="links">
+      <a href="https://uazu.net/sbagen/">SBaGen (original)</a>
+      <a href="https://github.com/ruanklein/sbagen-plus">SBaGen+</a>
+      <a href="https://github.com/ruanklein/synapseq">SynapSeq</a>
+      <a href="https://github.com/desireco/entrain">GitHub</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

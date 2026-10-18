@@ -7,6 +7,8 @@ output, and a permissive **MIT license**.
 Part of the **EntrainSpace** brand. CLI binary: `entrain`. Sequence files are plain TOML —
 informally, *trains*.
 
+Project homepage: **[desireco.github.io/entrain](https://desireco.github.io/entrain/)**
+
 ## What it does
 
 Render SBaGen `.sbg` session files to audio — your existing sessions keep working:
@@ -49,7 +51,8 @@ GPLv2, with a bespoke `.sbg` format and a single-file C codebase. Entrain keeps 
 
 ## Status & roadmap
 
-Early days — no usable release yet.
+v0.1.0 is out — grab a binary from
+[releases](https://github.com/desireco/entrain/releases) or `go install github.com/desireco/entrain/cmd/entrain@latest`.
 
 | Phase | Scope |
 |---|---|
