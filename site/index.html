@@ -3,262 +3,1155 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>entrain — clean-room Go rewrite of SBaGen</title>
-<meta name="description" content="entrain is a clean-room Go reimplementation of the SBaGen workflow: render .sbg binaural-beat sessions to WAV, FLAC and MP3, analyze audio with beatscope, generate noise. Actively developed, MIT licensed.">
-<link rel="canonical" href="https://desireco.github.io/entrain/">
-<meta property="og:title" content="entrain — clean-room Go rewrite of SBaGen">
-<meta property="og:description" content="Render .sbg sessions to WAV, FLAC and MP3. Clean-room Go, MIT licensed, single static binary, actively developed.">
-<meta property="og:url" content="https://desireco.github.io/entrain/">
+<title>Entrain — the brainwave engine</title>
+<meta name="description" content="Entrain is a clean-room Go reimplementation of the SBaGen workflow: render .sbg binaural-beat sessions to WAV, FLAC and MP3, verify audio with beatscope, generate noise beds — and play sessions live in your browser.">
+<meta property="og:title" content="Entrain — the brainwave engine">
+<meta property="og:description" content="Sound in. State out. A clean-room Go engine for brainwave entrainment — .sbg sessions to WAV, FLAC and MP3, verified with beatscope.">
 <meta property="og:type" content="website">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%237c6cff'/%3E%3Cpath d='M4 16 Q 8 6 12 16 T 20 16 T 28 16' stroke='white' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<meta property="og:url" content="https://desireco.github.io/entrain/">
+<link rel="canonical" href="https://desireco.github.io/entrain/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23f2f0e8'/%3E%3Cpath d='M4 16 Q 8 7 12 16 T 20 16 T 28 16' stroke='%23c2410c' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0b0e14;
-    --panel: #12161f;
-    --border: #232a38;
-    --text: #e6e9f0;
-    --muted: #98a2b6;
-    --accent: #7c6cff;
-    --accent2: #4cc9f0;
-    --mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font: 16px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    -webkit-font-smoothing: antialiased;
-  }
-  a { color: var(--accent2); text-decoration: none; }
-  a:hover { text-decoration: underline; }
-  .container { max-width: 1060px; margin: 0 auto; padding: 0 24px; }
+/* ==== Signal edition — "daylight lab sheet": bone paper + ink + signal orange, Space Grotesk / IBM Plex ==== */
+:root {
+  --bg: #f2f0e8;
+  --surface: #fbfaf5;
+  --surface-warm: #e9e6d8;
+  --fg: #191713;
+  --fg-2: #3f3b32;
+  --muted: #6f695a;
+  --meta: #c2410c;
+  --border: #d9d4c4;
+  --border-soft: #e7e3d5;
+  --accent: #c2410c;
+  --accent-on: #fdfcf8;
+  --accent-hover: color-mix(in oklab, var(--accent), black 8%);
+  --accent-active: color-mix(in oklab, var(--accent), black 14%);
+  --success: #2e7d46;
+  --warn: #9a6700;
+  --danger: #b42323;
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 24px;
+  --text-2xl: 36px;
+  --text-3xl: 54px;
+  --text-4xl: 76px;
+  --leading-body: 1.52;
+  --leading-tight: 1.06;
+  --tracking-display: -0.03em;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --section-y-desktop: 96px;
+  --section-y-tablet: 68px;
+  --section-y-phone: 48px;
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+  --radius-pill: 4px;
+  --elev-ring: 0 0 0 1px var(--border);
+  --elev-raised: 0 20px 60px rgba(25, 23, 19, 0.14);
+  --focus-ring: 0 0 0 4px rgba(194, 65, 12, 0.28);
+  --motion-fast: 150ms;
+  --motion-base: 240ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --container-max: 1180px;
+  --container-gutter-desktop: 36px;
+  --container-gutter-tablet: 24px;
+  --container-gutter-phone: 16px;
+}
+/* Type roles: display + body + mono stacks below (edition-specific) */
+:root {
+  --font-display: 'Space Grotesk', 'IBM Plex Sans', system-ui, sans-serif;
+  --font-body: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+}
 
-  header.nav {
-    position: sticky; top: 0; z-index: 10;
-    background: rgba(11, 14, 20, 0.82);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--border);
-  }
-  .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 60px; }
-  .brand { font-family: var(--mono); font-weight: 700; font-size: 1.05rem; color: var(--text); }
-  .brand:hover { text-decoration: none; color: var(--accent2); }
-  .nav nav { display: flex; gap: 22px; flex-wrap: wrap; }
-  .nav nav a { color: var(--muted); font-size: 0.92rem; }
-  .nav nav a:hover { color: var(--text); text-decoration: none; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font: 400 var(--text-base)/var(--leading-body) var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+::selection { background: var(--accent); color: var(--accent-on); }
+a { color: var(--fg-2); text-decoration: none; }
+a:hover { color: var(--fg); }
+:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
+.container { max-width: var(--container-max); margin: 0 auto; padding-inline: var(--container-gutter-desktop); }
+section { scroll-margin-top: 84px; }
+.mono { font-family: var(--font-mono); }
+.eyebrow {
+  font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: .22em;
+  text-transform: uppercase; color: var(--accent); display: inline-flex; align-items: center; gap: 10px;
+}
+.eyebrow::before { content: ""; width: 22px; height: 1px; background: var(--accent); }
+.skip-link {
+  position: absolute; left: 16px; top: -48px; z-index: 100; background: var(--accent); color: var(--accent-on);
+  padding: 10px 16px; border-radius: var(--radius-sm); font-weight: 600; transition: top var(--motion-fast);
+}
+.skip-link:focus-visible { top: 12px; }
 
-  .hero { position: relative; padding: 88px 0 40px; overflow: hidden; }
-  .kicker {
-    font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.08em;
-    text-transform: uppercase; color: var(--accent2); margin-bottom: 18px;
-  }
-  h1 { font-size: clamp(2.4rem, 6vw, 3.6rem); line-height: 1.12; letter-spacing: -0.02em; }
-  h1 .grad {
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-  }
-  .lede { max-width: 640px; margin: 22px 0 30px; font-size: 1.15rem; color: var(--muted); }
-  .lede code { font-family: var(--mono); font-size: 0.9em; color: var(--text); }
-  .cta { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 40px; }
-  .btn {
-    display: inline-block; padding: 11px 22px; border-radius: 8px;
-    font-weight: 600; font-size: 0.95rem; border: 1px solid var(--border);
-    color: var(--text); transition: border-color .15s, transform .15s;
-  }
-  .btn:hover { text-decoration: none; border-color: var(--accent2); transform: translateY(-1px); }
-  .btn.primary {
-    background: linear-gradient(90deg, var(--accent), #5a8df0);
-    border: none; color: #fff;
-  }
-  .term {
-    font-family: var(--mono); font-size: 0.85rem;
-    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
-    padding: 14px 18px; max-width: 720px; overflow-x: auto; color: var(--muted);
-  }
-  .term .p { color: var(--accent2); }
-  .term .o { color: var(--text); }
-  .wave { position: absolute; inset: auto 0 0; height: 120px; pointer-events: none; }
-  .wave svg { width: 100%; height: 100%; display: block; }
-  .wave .fast { animation: pulse 4s ease-in-out infinite; }
-  @keyframes pulse { 0%, 100% { opacity: 0.25; } 50% { opacity: 0.55; } }
-  @media (prefers-reduced-motion: reduce) { .wave .fast { animation: none; } html { scroll-behavior: auto; } }
+/* ==== grain ==== */
+.grain {
+  position: fixed; inset: 0; z-index: 60; pointer-events: none; opacity: .06; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E");
+}
 
-  section { padding: 72px 0 12px; }
-  h2 { font-size: 1.7rem; letter-spacing: -0.01em; margin-bottom: 10px; }
-  .section-lede { color: var(--muted); max-width: 680px; margin-bottom: 34px; }
+/* ==== nav ==== */
+header.nav {
+  position: sticky; top: 0; z-index: 50;
+  background: color-mix(in oklab, var(--bg), transparent 18%);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-soft);
+}
+.nav-inner { display: flex; align-items: center; gap: var(--space-6); height: 64px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; color: var(--fg); font-family: var(--font-display); font-size: 17px; letter-spacing: .04em; }
+.brand:hover { color: var(--fg); }
+.brand svg { display: block; }
+.nav-links { display: flex; gap: var(--space-5); margin-inline: auto; }
+.nav-links a { font-size: var(--text-sm); color: var(--muted); padding: 8px 2px; }
+.nav-links a:hover { color: var(--fg); }
+.nav-links a.active { color: var(--fg); box-shadow: inset 0 -2px 0 var(--accent); }
+.nav-gh {
+  display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: var(--text-sm);
+  color: var(--fg-2); border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 9px 18px; min-height: 44px;
+  transition: border-color var(--motion-base) var(--ease-standard), background var(--motion-base) var(--ease-standard);
+}
+.nav-gh:hover { border-color: var(--accent); color: var(--fg); background: var(--surface); }
 
-  .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
-  .feat { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 22px; }
-  .feat h3 { font-size: 1.02rem; margin-bottom: 8px; }
-  .feat h3 .ic { margin-right: 8px; }
-  .feat p { color: var(--muted); font-size: 0.92rem; }
-  .feat code { font-family: var(--mono); font-size: 0.85em; color: var(--accent2); }
+/* ==== hero ==== */
+.hero { position: relative; padding: clamp(56px, 9vh, 104px) 0 0; overflow: clip; }
+#hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; opacity: .9; }
+.hero .container { position: relative; }
+.badges { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-8); }
+.badge {
+  font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: .14em; color: var(--muted);
+  border: 1px solid var(--border-soft); background: color-mix(in oklab, var(--surface), transparent 30%);
+  padding: 7px 12px; border-radius: var(--radius-pill);
+}
+.badge .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--success); margin-right: 8px; vertical-align: 1px; }
+h1 {
+  font-family: var(--font-display); font-weight: 400; font-size: clamp(40px, 7.2vw, var(--text-4xl));
+  line-height: var(--leading-tight); letter-spacing: .01em; max-width: 13ch;
+}
+h1 em { font-style: normal; color: var(--accent); }
+.lede { max-width: 58ch; margin-top: var(--space-6); color: var(--fg-2); font-size: var(--text-lg); text-wrap: pretty; }
+.lede .mono { font-size: .92em; color: var(--fg); }
+.cta-row { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-5); margin-top: var(--space-8); }
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 10px; background: var(--accent); color: var(--accent-on);
+  font-weight: 600; font-size: var(--text-base); border: none; cursor: pointer;
+  padding: 14px 24px; min-height: 48px; border-radius: var(--radius-pill);
+  transition: background var(--motion-base) var(--ease-standard), transform var(--motion-fast) var(--ease-standard);
+}
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-primary:active { background: var(--accent-active); transform: scale(.98); }
+.btn-play-icon { width: 14px; height: 14px; fill: currentColor; }
+.link-quiet { font-size: var(--text-base); color: var(--fg-2); border-bottom: 1px solid var(--border); padding-bottom: 2px; min-height: 44px; display: inline-flex; align-items: center; }
+.link-quiet:hover { color: var(--fg); border-color: var(--accent); }
+.hero-terminal {
+  margin: clamp(40px, 7vh, 72px) 0 0 auto; width: min(560px, 100%);
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md);
+  box-shadow: var(--elev-raised); overflow: hidden;
+}
+.term-head { display: flex; gap: 6px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border-soft); }
+.term-head i { width: 9px; height: 9px; border-radius: 50%; background: var(--border); }
+.term-head i:first-child { background: var(--accent); opacity: .7; }
+.term-head span { margin-left: auto; font-family: var(--font-mono); font-size: var(--text-xs); color: var(--muted); letter-spacing: .12em; }
+.term-body { padding: 18px 20px 20px; font-family: var(--font-mono); font-size: var(--text-sm); line-height: 1.7; }
+.term-body .p { color: var(--accent); }
+.term-body .out { color: var(--muted); }
+.term-body .hl { color: var(--fg); }
 
-  pre.block {
-    font-family: var(--mono); font-size: 0.88rem; line-height: 1.7;
-    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
-    padding: 20px 22px; overflow-x: auto; margin: 14px 0 22px;
-  }
-  pre.block .c { color: #5b657a; }
-  .note { color: var(--muted); font-size: 0.9rem; margin-bottom: 8px; }
+/* ==== band ticker ==== */
+.ticker { border-block: 1px solid var(--border-soft); margin-top: clamp(48px, 8vh, 80px); overflow: hidden; }
+.ticker-track { display: flex; width: max-content; animation: tick 46s linear infinite; }
+.ticker:hover .ticker-track { animation-play-state: paused; }
+.ticker-seq { display: flex; align-items: center; white-space: nowrap; padding-block: 14px; }
+.ticker-seq span { font-family: var(--font-mono); font-size: var(--text-sm); letter-spacing: .18em; color: var(--muted); padding-inline: 28px; }
+.ticker-seq b { color: var(--accent); font-weight: 400; }
+@keyframes tick { to { transform: translateX(-50%); } }
 
-  .faq details {
-    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
-    padding: 16px 20px; margin-bottom: 12px;
-  }
-  .faq summary { cursor: pointer; font-weight: 600; }
-  .faq details p { color: var(--muted); margin-top: 10px; font-size: 0.94rem; }
+/* ==== sections ==== */
+.section { padding-block: var(--section-y-desktop); }
+.section-head { max-width: 720px; }
+h2 { font-family: var(--font-display); font-weight: 400; font-size: clamp(26px, 3.6vw, var(--text-2xl)); line-height: 1.18; letter-spacing: .01em; margin-top: var(--space-4); }
+h2 em { font-style: normal; color: var(--accent); }
+.section-sub { color: var(--muted); margin-top: var(--space-4); max-width: 62ch; text-wrap: pretty; }
 
-  footer {
-    margin-top: 80px; border-top: 1px solid var(--border);
-    padding: 34px 0 44px; color: var(--muted); font-size: 0.88rem;
-  }
-  footer .links { margin-top: 10px; display: flex; gap: 18px; flex-wrap: wrap; }
+/* ==== studio ==== */
+.studio {
+  margin-top: var(--space-12); background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); box-shadow: var(--elev-raised); overflow: hidden;
+}
+.studio-grid { display: grid; grid-template-columns: 380px minmax(0, 1fr); }
+.studio-left { padding: var(--space-8); border-right: 1px solid var(--border-soft); display: flex; flex-direction: column; gap: var(--space-5); }
+.chip-label { font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: .2em; color: var(--muted); text-transform: uppercase; }
+.chip-stack { display: flex; flex-direction: column; gap: var(--space-2); }
+.chip {
+  text-align: left; background: var(--bg); border: 1px solid var(--border-soft); border-radius: var(--radius-md);
+  padding: 14px 16px; cursor: pointer; color: var(--fg-2); min-height: 64px;
+  transition: border-color var(--motion-base) var(--ease-standard), background var(--motion-base) var(--ease-standard);
+}
+.chip:hover { border-color: var(--border); background: var(--surface-warm); color: var(--fg); }
+.chip[aria-pressed="true"] { border-color: var(--accent); color: var(--fg); background: color-mix(in oklab, var(--accent), transparent 92%); }
+.chip .chip-name { font-family: var(--font-mono); font-size: 15px; color: var(--fg); display: flex; justify-content: space-between; gap: 12px; }
+.chip[aria-pressed="true"] .chip-name { color: var(--accent); }
+.chip .chip-desc { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.chip .chip-hz { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--muted); }
+.vol-row { display: flex; align-items: center; gap: var(--space-3); }
+input[type="range"] { flex: 1; appearance: none; -webkit-appearance: none; height: 4px; border-radius: 2px; background: var(--border); cursor: pointer; }
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none; -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--fg); border: 4px solid var(--surface); box-shadow: 0 0 0 1px var(--border);
+}
+input[type="range"]::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: var(--fg); border: none; }
+.heads-note { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--muted); border-top: 1px dashed var(--border); padding-top: var(--space-4); margin-top: auto; }
+.heads-note svg { flex: none; margin-top: 2px; stroke: var(--accent); }
+.studio-right { display: flex; flex-direction: column; min-width: 0; }
+.scope { position: relative; aspect-ratio: 16 / 8.2; min-height: 260px; background: var(--bg); border-bottom: 1px solid var(--border-soft); }
+.scope canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.scope-tag { position: absolute; top: 14px; left: 16px; font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: .2em; color: var(--muted); }
+.scope-state { position: absolute; top: 12px; right: 16px; display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: .16em; color: var(--muted); }
+.scope-state .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border); }
+.scope-state.live { color: var(--success); }
+.scope-state.live .dot { background: var(--success); animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .35; } }
+.transport { display: flex; align-items: center; gap: var(--space-5); padding: var(--space-5) var(--space-6); }
+.play-btn {
+  width: 64px; height: 64px; flex: none; border-radius: 50%; border: 1px solid var(--accent);
+  background: var(--accent); color: var(--accent-on); cursor: pointer; display: grid; place-items: center;
+  transition: background var(--motion-base) var(--ease-standard), transform var(--motion-fast) var(--ease-standard);
+}
+.play-btn:hover { background: var(--accent-hover); }
+.play-btn:active { transform: scale(.96); background: var(--accent-active); }
+.play-btn svg { width: 20px; height: 20px; fill: currentColor; }
+.play-btn .i-pause { display: none; }
+.play-btn[aria-pressed="true"] .i-pause { display: block; }
+.play-btn[aria-pressed="true"] .i-play { display: none; }
+.transport-meta { min-width: 0; }
+.transport-meta .t-name { font-family: var(--font-mono); font-size: var(--text-lg); color: var(--fg); }
+.transport-meta .t-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.elapsed { margin-left: auto; font-family: var(--font-mono); font-size: var(--text-xl); color: var(--fg); font-variant-numeric: tabular-nums; }
+.readouts { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)) minmax(0, 1.9fr); border-top: 1px solid var(--border-soft); }
+.ro { padding: var(--space-4) var(--space-5); border-right: 1px solid var(--border-soft); min-width: 0; }
+.ro:last-child { border-right: none; }
+.ro .k { font-family: var(--font-mono); font-size: 11px; letter-spacing: .18em; color: var(--muted); text-transform: uppercase; }
+.ro .v { font-family: var(--font-mono); font-size: 15px; color: var(--fg); margin-top: 6px; overflow-wrap: anywhere; }
+.ro .v em { font-style: normal; color: var(--accent); }
+.status-line { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--muted); letter-spacing: .08em; padding: 12px var(--space-6); border-top: 1px solid var(--border-soft); background: color-mix(in oklab, var(--bg), transparent 40%); }
+.status-line b { color: var(--fg-2); font-weight: 400; }
+
+/* ==== engine spec-sheet ==== */
+.spec-list { margin-top: var(--space-12); border-top: 1px solid var(--border-soft); }
+.spec-row {
+  display: grid; grid-template-columns: 72px minmax(180px, 300px) 1fr auto; gap: var(--space-6);
+  align-items: baseline; padding: var(--space-6) var(--space-4); border-bottom: 1px solid var(--border-soft);
+  transition: background var(--motion-base) var(--ease-standard);
+}
+.spec-row:hover { background: color-mix(in oklab, var(--surface), transparent 40%); }
+.spec-num { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--muted); }
+.spec-name { font-size: var(--text-lg); font-weight: 600; letter-spacing: -.01em; transition: color var(--motion-base) var(--ease-standard); }
+.spec-row:hover .spec-name { color: var(--accent); }
+.spec-desc { color: var(--muted); font-size: var(--text-sm); max-width: 62ch; text-wrap: pretty; }
+.spec-desc .mono { font-size: .94em; color: var(--fg-2); }
+.spec-badge {
+  font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: .12em; color: var(--success);
+  border: 1px solid color-mix(in oklab, var(--success), transparent 60%); border-radius: var(--radius-pill); padding: 5px 12px; white-space: nowrap;
+}
+a.spec-badge { transition: background var(--motion-base) var(--ease-standard), color var(--motion-base) var(--ease-standard), border-color var(--motion-base) var(--ease-standard); }
+a.spec-badge:hover { color: var(--accent-on); background: var(--success); border-color: var(--success); }
+
+/* ==== handbook ==== */
+.handbook { display: grid; grid-template-columns: 280px 1fr; gap: var(--space-8); margin-top: var(--space-12); }
+.tab-rail { display: flex; flex-direction: column; gap: var(--space-1); align-self: start; position: sticky; top: 96px; }
+.tab-btn {
+  text-align: left; background: none; border: none; border-left: 2px solid var(--border-soft); cursor: pointer;
+  padding: 12px 18px; color: var(--muted); font-size: 15px; min-height: 44px; font-family: var(--font-body);
+  transition: color var(--motion-base) var(--ease-standard), border-color var(--motion-base) var(--ease-standard);
+}
+.tab-btn:hover { color: var(--fg); }
+.tab-btn[aria-selected="true"] { color: var(--fg); border-left-color: var(--accent); background: linear-gradient(90deg, color-mix(in oklab, var(--accent), transparent 94%), transparent); }
+.tab-btn .mono { font-size: 12px; color: var(--muted); display: block; margin-top: 2px; }
+.terminal-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; min-width: 0; }
+.term-code { padding: var(--space-6); font-family: var(--font-mono); font-size: var(--text-sm); line-height: 1.85; overflow-x: auto; }
+.term-code .c { color: var(--muted); }
+.term-code .p { color: var(--accent); }
+.term-code .flag { color: var(--fg); }
+.flags-strip {
+  display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-5); padding: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--border-soft); font-family: var(--font-mono); font-size: 13px; color: var(--muted);
+}
+.flags-strip b { color: var(--fg-2); font-weight: 400; }
+
+/* ==== session anatomy ==== */
+.anatomy { display: grid; grid-template-columns: 1.25fr 1fr; gap: var(--space-8); margin-top: var(--space-12); align-items: start; }
+.code-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
+.code-card .term-body { line-height: 1.9; }
+.code-card .cm { color: var(--muted); }
+.code-card .ts { color: var(--fg); }
+.code-card .tline { color: var(--accent); }
+.anatomy-notes { display: flex; flex-direction: column; gap: var(--space-6); }
+.anatomy-note h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+.anatomy-note h3 .mono { color: var(--accent); font-size: 13px; margin-right: 8px; }
+.anatomy-note p { font-size: var(--text-sm); color: var(--muted); text-wrap: pretty; }
+.timeline-card { background: var(--bg); border: 1px dashed var(--border); border-radius: var(--radius-md); padding: var(--space-5); margin-top: var(--space-2); }
+.timeline-bar { display: flex; height: 34px; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border-soft); }
+.timeline-bar .seg-on { flex: 60; background: linear-gradient(90deg, color-mix(in oklab, var(--accent), transparent 55%), var(--accent)); }
+.timeline-bar .seg-off { flex: 1; background: var(--surface-warm); }
+.timeline-lbl { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 12px; color: var(--muted); margin-top: 8px; }
+.lib-row { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-5); }
+.lib-chip {
+  font-family: var(--font-mono); font-size: 13px; color: var(--fg-2); border: 1px solid var(--border-soft);
+  border-radius: var(--radius-pill); padding: 10px 18px; min-height: 44px; display: inline-flex; align-items: center; gap: 8px;
+  transition: border-color var(--motion-base) var(--ease-standard), color var(--motion-base) var(--ease-standard);
+}
+.lib-chip:hover { border-color: var(--accent); color: var(--fg); }
+.lib-chip small { color: var(--muted); font-size: 11px; }
+
+/* ==== faq ==== */
+.faq-grid { display: grid; grid-template-columns: 300px 1fr; gap: var(--space-8); }
+.faq-list { display: flex; flex-direction: column; }
+.faq-item { border-top: 1px solid var(--border-soft); padding: var(--space-6) 0; display: grid; grid-template-columns: 1fr 1.6fr; gap: var(--space-6); }
+.faq-item:last-child { border-bottom: 1px solid var(--border-soft); }
+.faq-item h3 { font-size: var(--text-lg); font-weight: 600; letter-spacing: -.01em; text-wrap: balance; }
+.faq-item p { color: var(--muted); font-size: var(--text-sm); max-width: 60ch; text-wrap: pretty; }
+.faq-item p a { color: var(--accent); border-bottom: 1px solid color-mix(in oklab, var(--accent), transparent 60%); }
+
+/* ==== footer ==== */
+footer { border-top: 1px solid var(--border-soft); padding: var(--space-12) 0 var(--space-8); }
+.foot-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: var(--space-8); }
+.foot-brand p { color: var(--muted); font-size: var(--text-sm); margin-top: var(--space-4); max-width: 42ch; text-wrap: pretty; }
+.foot-col h4 { font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: .2em; color: var(--muted); text-transform: uppercase; margin-bottom: var(--space-4); font-weight: 400; }
+.foot-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.foot-col a, .foot-col li { font-size: var(--text-sm); color: var(--fg-2); }
+.foot-col a:hover { color: var(--fg); }
+.foot-col .plain { color: var(--muted); }
+.foot-col .sub { color: var(--muted); font-size: 12px; margin-left: 8px; }
+.foot-col .sub:hover { color: var(--fg); }
+.legal { margin-top: var(--space-12); padding-top: var(--space-5); border-top: 1px solid var(--border-soft); display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-6); color: var(--muted); font-size: 13px; }
+.legal .mono { font-size: 12px; }
+
+/* ==== reveal ==== */
+.reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s var(--ease-standard), transform .7s var(--ease-standard); transition-delay: var(--d, 0ms); }
+.reveal.in { opacity: 1; transform: none; }
+
+/* ==== responsive ==== */
+@media (max-width: 980px) {
+  .studio-grid { grid-template-columns: minmax(0, 1fr); }
+  .studio-left { border-right: none; border-bottom: 1px solid var(--border-soft); }
+  .readouts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ro:nth-child(3) { border-right: none; }
+  .ro:nth-child(-n+3) { border-bottom: 1px solid var(--border-soft); }
+  .spec-row { grid-template-columns: 48px 1fr; grid-template-rows: auto auto; }
+  .spec-desc { grid-column: 2; }
+  .spec-badge { grid-column: 2; justify-self: start; }
+  .handbook { grid-template-columns: 1fr; }
+  .tab-rail { position: static; flex-direction: row; flex-wrap: wrap; }
+  .tab-btn { border-left: none; border-bottom: 2px solid var(--border-soft); border-radius: 0; }
+  .tab-btn[aria-selected="true"] { border-bottom-color: var(--accent); background: none; }
+  .anatomy, .faq-grid { grid-template-columns: 1fr; }
+  .foot-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 640px) {
+  .container { padding-inline: var(--container-gutter-tablet); }
+  .section { padding-block: var(--section-y-tablet); }
+  .nav-links { display: none; }
+  .readouts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ro { border-right: none !important; border-bottom: 1px solid var(--border-soft); }
+  .ro:nth-child(odd) { border-right: 1px solid var(--border-soft) !important; }
+  .ro:nth-last-child(-n+2) { border-bottom: none; }
+  .faq-item { grid-template-columns: 1fr; gap: var(--space-3); }
+  .foot-grid { grid-template-columns: 1fr; }
+  .elapsed { margin-left: 0; width: 100%; }
+  .transport { flex-wrap: wrap; }
+}
+@media (max-width: 420px) {
+  .nav-inner { gap: var(--space-3); }
+  .nav-gh { padding: 9px 12px; }
+  .nav-gh .gh-label { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .ticker-track { animation: none; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .scope-state.live .dot { animation: none; }
+}
+/* ==== Signal overrides ==== */
+h1, h2, .brand { font-weight: 500; }
+h2 { letter-spacing: -.02em; }
+.btn-primary { font-family: var(--font-mono); font-size: 13px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; }
+.eyebrow { letter-spacing: .3em; }
+.badge .dot { border-radius: 1px; }
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="grain" aria-hidden="true"></div>
 
-<header class="nav">
+<header class="nav" data-od-id="nav">
   <div class="container nav-inner">
-    <a class="brand" href="#">entrain</a>
-    <nav>
-      <a href="https://desireco.github.io/sbagen/">SBaGen</a>
-      <a href="#features">Features</a>
-      <a href="#quickstart">Quick start</a>
-      <a href="https://github.com/desireco/entrain">GitHub</a>
+    <a class="brand" href="#top" aria-label="Entrain home">
+      <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#fbfaf5" stroke="#d9d4c4"/><path d="M6 16 Q 9.5 8 13 16 T 20 16 T 26 16" stroke="#c2410c" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>
+      ENTRAIN
+    </a>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#studio" data-spy="studio">Studio</a>
+      <a href="#engine" data-spy="engine">Engine</a>
+      <a href="#handbook" data-spy="handbook">Handbook</a>
+      <a href="#sessions" data-spy="sessions">Sessions</a>
+      <a href="#faq" data-spy="faq">FAQ</a>
     </nav>
+    <a class="nav-gh" href="https://github.com/desireco/entrain" target="_blank" rel="noopener" aria-label="GitHub — desireco/entrain">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+      <span class="gh-label">desireco/entrain</span>
+    </a>
   </div>
 </header>
 
-<main>
-  <section class="hero container">
-    <p class="kicker">Clean-room Go &middot; MIT licensed &middot; v0.1.0 &middot; actively developed</p>
-    <h1>The <span class="grad">entrain</span> engine.</h1>
-    <p class="lede">
-      A clean-room Go reimplementation of the SBaGen workflow. It renders
-      <code>.sbg</code> sessions to WAV, FLAC and MP3, and verifies what any renderer
-      put in a file with <strong>beatscope</strong>.
+<main id="main">
+<!-- ================= HERO ================= -->
+<section class="hero" id="top" data-od-id="hero">
+  <canvas id="hero-canvas" aria-hidden="true"></canvas>
+  <div class="container">
+    <div class="badges reveal" data-od-id="hero-badges">
+      <span class="badge">CLEAN-ROOM GO</span>
+      <span class="badge">MIT LICENSED</span>
+      <span class="badge">v0.1.0</span>
+      <span class="badge"><span class="dot"></span>ACTIVELY DEVELOPED</span>
+    </div>
+    <h1 class="reveal" style="--d:80ms" data-od-id="hero-title">Sound in.<br><em>State out.</em></h1>
+    <p class="lede reveal" style="--d:160ms" data-od-id="hero-lede">
+      Entrain is a clean-room Go engine for brainwave entrainment. It renders <span class="mono">.sbg</span> sessions
+      to WAV, FLAC and MP3, verifies what any renderer put in a file with <span class="mono">beatscope</span> —
+      and below, it plays a session live in your browser. Headphones on.
     </p>
-    <div class="cta">
-      <a class="btn primary" href="#quickstart">Get started</a>
-      <a class="btn" href="https://github.com/desireco/entrain/releases">Releases</a>
-      <a class="btn" href="https://github.com/desireco/entrain">GitHub</a>
+    <div class="cta-row reveal" style="--d:240ms">
+      <button class="btn-primary" id="cta-launch" data-od-id="cta-launch">
+        <svg class="btn-play-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1.5v13l11-6.5z"/></svg>
+        Launch the live studio
+      </button>
+      <a class="link-quiet" href="#handbook">Install the CLI first</a>
     </div>
-    <pre class="term"><span class="p">$</span> entrain focus-10 -f mp3
-<span class="o">focus-10.mp3 &middot; 40 Hz γ + 24 Hz β over pink noise &middot; 320 kbps</span></pre>
-    <div class="wave" aria-hidden="true">
-      <svg viewBox="0 0 1600 120" preserveAspectRatio="none">
-        <defs>
-          <linearGradient id="wg" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stop-color="#7c6cff"/>
-            <stop offset="1" stop-color="#4cc9f0"/>
-          </linearGradient>
-        </defs>
-        <path fill="none" stroke="url(#wg)" stroke-width="2" opacity="0.5"
-          d="M0 60 Q 50 0 100 60 T 200 60 T 300 60 T 400 60 T 500 60 T 600 60 T 700 60 T 800 60 T 900 60 T 1000 60 T 1100 60 T 1200 60 T 1300 60 T 1400 60 T 1500 60 T 1600 60"/>
-        <path class="fast" fill="none" stroke="url(#wg)" stroke-width="1.5"
-          d="M0 60 Q 20 30 40 60 T 80 60 T 120 60 T 160 60 T 200 60 T 240 60 T 280 60 T 320 60 T 360 60 T 400 60 T 440 60 T 480 60 T 520 60 T 560 60 T 600 60 T 640 60 T 680 60 T 720 60 T 760 60 T 800 60 T 840 60 T 880 60 T 920 60 T 960 60 T 1000 60 T 1040 60 T 1080 60 T 1120 60 T 1160 60 T 1200 60 T 1240 60 T 1280 60 T 1320 60 T 1360 60 T 1400 60 T 1440 60 T 1480 60 T 1520 60 T 1560 60 T 1600 60"/>
-      </svg>
-    </div>
-  </section>
-
-  <section id="features" class="container">
-    <h2>Inside the engine</h2>
-    <p class="section-lede">Pure Go, zero cgo in the core pipeline — packages you can lift, a binary you can ship.</p>
-    <div class="features">
-      <div class="feat">
-        <h3><span class="ic">&#9835;</span>Synth core</h3>
-        <p>Phase-continuous sine oscillators, binaural L/R pairing, equal-power crossfades and
-           amplitude glide envelopes — retuning never clicks. Float64 end-to-end.</p>
-      </div>
-      <div class="feat">
-        <h3><span class="ic">&#128220;</span>.sbg reader + planner</h3>
-        <p>Tone-sets, absolute/<code>NOW</code>/relative times, nested blocks — and sbagen's
-           30-second changeover crossfades with true tone continuity across segments.</p>
-      </div>
-      <div class="feat">
-        <h3><span class="ic">&#9636;</span>Codec stack</h3>
-        <p>WAV (go-audio), FLAC (mewkiz, bit-exact) and MP3 (pure-Go Shine, level-matched).
-           Shared clip &rarr; TPDF-dither &rarr; quantize stage, 16/24-bit, deterministic.</p>
-      </div>
-      <div class="feat">
-        <h3><span class="ic">&#127911;</span>Noise DSP</h3>
-        <p>White, pink and brown noise with correct spectral slopes, decorrelated stereo and
-           calibrated bed loudness — plus FFT-shaped 1/f<sup>&alpha;</sup> slopes in
-           <code>noisemaker</code>.</p>
-      </div>
-      <div class="feat">
-        <h3><span class="ic">&#128269;</span>beatscope</h3>
-        <p>STFT carrier/beat detection with L/R pairing and window-voted confidence.
-           Cross-engine validated against sbagen —
-           <a href="https://github.com/desireco/entrain/blob/main/docs/validation.md">5/5 MATCH</a>.</p>
-      </div>
-      <div class="feat">
-        <h3><span class="ic">&#9878;</span>MIT licensed</h3>
-        <p>No SBaGen code anywhere — derived from public DSP technique and behavioral
-           comparison. Embed it anywhere, including commercial use.</p>
+    <div class="hero-terminal reveal" style="--d:320ms" data-od-id="hero-terminal">
+      <div class="term-head" aria-hidden="true"><i></i><i></i><i></i><span>entrain · zsh</span></div>
+      <div class="term-body">
+        <div><span class="p">$</span> entrain focus-40-pink -f mp3</div>
+        <div class="out"><span class="hl">focus-40-pink.mp3</span> · 40 Hz γ over pink noise · 320 kbps</div>
       </div>
     </div>
-  </section>
+  </div>
+  <div class="ticker" data-od-id="band-ticker" aria-hidden="true">
+    <div class="ticker-track" id="ticker-track">
+      <div class="ticker-seq">
+        <span><b>DELTA</b> 0.5–4 HZ · DEEP SLEEP</span><span><b>THETA</b> 4–8 HZ · MEDITATION</span><span><b>ALPHA</b> 8–12 HZ · CALM ALERTNESS</span><span><b>BETA</b> 12–30 HZ · ACTIVE THINKING</span><span><b>GAMMA</b> 30–45 HZ · PEAK PROCESSING</span>
+      </div>
+    </div>
+  </div>
+</section>
 
-  <section id="quickstart" class="container">
-    <h2>Quick start</h2>
-    <p class="section-lede">Install, render, verify — all from the terminal.</p>
-<pre class="block"><span class="c"># install</span>
-go install github.com/desireco/entrain/cmd/entrain@latest
-go install github.com/desireco/entrain/cmd/beatscope@latest
-go install github.com/desireco/entrain/cmd/noisemaker@latest
+<!-- ================= STUDIO ================= -->
+<section class="section" id="studio" data-od-id="studio">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Live demo · Web Audio</span>
+      <h2>The engine, <em>playing live.</em></h2>
+      <p class="section-sub">Three sessions from the shipped library, synthesized right here with phase-continuous
+      oscillators — the same plans the CLI renders to audio. Switch mid-glide: retuning never clicks.</p>
+    </div>
+    <div class="studio reveal" style="--d:120ms" data-od-id="studio-panel">
+      <div class="studio-grid">
+        <div class="studio-left">
+          <span class="chip-label">Session plan</span>
+          <div class="chip-stack" role="group" aria-label="Choose a session" id="chip-stack">
+            <button class="chip" data-od-id="chip-focus-40-pink" data-session="focus-40-pink" aria-pressed="true">
+              <span class="chip-name">focus-40-pink <span class="chip-hz">40γ</span></span>
+              <span class="chip-desc">40 Hz gamma over a pink noise bed — the focus classic.</span>
+            </button>
+            <button class="chip" data-od-id="chip-meditate-alpha" data-session="meditate-alpha" aria-pressed="false">
+              <span class="chip-name">meditate-alpha <span class="chip-hz">10α</span></span>
+              <span class="chip-desc">Slow 10 Hz alpha over soft pink. Sit, breathe, listen.</span>
+            </button>
+            <button class="chip" data-od-id="chip-sleep-delta" data-session="sleep-delta" aria-pressed="false">
+              <span class="chip-name">sleep-delta <span class="chip-hz">3δ</span></span>
+              <span class="chip-desc">Slow 3 Hz delta over brown noise. For the descent into sleep.</span>
+            </button>
+          </div>
+          <span class="chip-label">Level</span>
+          <div class="vol-row">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="color:var(--muted)"><path d="M11 5 6 9H2v6h4l5 4V5z"/></svg>
+            <input type="range" id="volume" min="0" max="100" value="70" aria-label="Session volume">
+            <span class="mono" id="vol-read" style="font-size:13px;color:var(--muted);min-width:38px;text-align:right">70%</span>
+          </div>
+          <p class="heads-note">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+            Headphones required — binaural beats collapse on speakers. Each ear must receive its own carrier.
+          </p>
+        </div>
+        <div class="studio-right">
+          <div class="scope" data-od-id="studio-scope">
+            <canvas id="scope-canvas"></canvas>
+            <span class="scope-tag">BEATSCOPE · LIVE</span>
+            <span class="scope-state" id="scope-state"><span class="dot"></span>STANDBY</span>
+          </div>
+          <div class="transport">
+            <button class="play-btn" id="play-btn" data-od-id="studio-play" aria-pressed="false" aria-label="Play session">
+              <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>
+              <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
+            </button>
+            <div class="transport-meta">
+              <div class="t-name" id="t-name">focus-40-pink</div>
+              <div class="t-sub" id="t-sub">40 Hz γ over pink noise</div>
+            </div>
+            <div class="elapsed" id="elapsed" aria-label="Elapsed time">00:00</div>
+          </div>
+          <div class="readouts" data-od-id="studio-readouts">
+            <div class="ro"><div class="k">L carrier</div><div class="v" id="ro-l">180.00 Hz</div></div>
+            <div class="ro"><div class="k">R carrier</div><div class="v" id="ro-r">220.00 Hz</div></div>
+            <div class="ro"><div class="k">Beat</div><div class="v" id="ro-beat"><em>40.0 Hz γ</em></div></div>
+            <div class="ro"><div class="k">Bed</div><div class="v" id="ro-bed">pink</div></div>
+            <div class="ro"><div class="k">Engine</div><div class="v">Float64 · Go</div></div>
+            <div class="ro"><div class="k">Would render</div><div class="v" id="ro-out">focus-40-pink.mp3</div></div>
+          </div>
+          <div class="status-line" id="status-line" aria-live="polite">
+            <b>STANDBY</b> · 44.1 kHz stereo · press play to synthesize in-browser — nothing is downloaded, nothing is uploaded
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-<span class="c"># render an existing .sbg session</span>
-entrain render focus.sbg                 <span class="c"># default WAV; -f mp3 / -f flac, -b 24 for 24-bit</span>
-entrain focus-10 --dry-run               <span class="c"># preview the timeline plan first</span>
+<!-- ================= ENGINE ================= -->
+<section class="section" id="engine" data-od-id="engine">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Inside the engine</span>
+      <h2>Pure Go in the core pipeline.</h2>
+      <p class="section-sub">Packages you can lift, a binary you can ship.</p>
+    </div>
+    <div class="spec-list reveal" style="--d:100ms" data-od-id="engine-features">
+      <div class="spec-row" data-od-id="feature-synth-core">
+        <span class="spec-num">01</span>
+        <span class="spec-name">Synth core</span>
+        <p class="spec-desc">Phase-continuous sine oscillators, binaural L/R pairing, equal-power crossfades and amplitude
+        glide envelopes — retuning never clicks. Float64 end-to-end.</p>
+        <span></span>
+      </div>
+      <div class="spec-row" data-od-id="feature-sbg-reader">
+        <span class="spec-num">02</span>
+        <span class="spec-name">.sbg reader + planner</span>
+        <p class="spec-desc">Tone-sets, absolute / <span class="mono">NOW</span> / relative times, nested blocks — and sbagen's
+        30-second changeover crossfades with true tone continuity across segments.</p>
+        <span></span>
+      </div>
+      <div class="spec-row" data-od-id="feature-codec-stack">
+        <span class="spec-num">03</span>
+        <span class="spec-name">Codec stack</span>
+        <p class="spec-desc">WAV (go-audio), FLAC (mewkiz, bit-exact) and MP3 (pure-Go Shine, level-matched). Shared
+        clip → TPDF-dither → quantize stage, 16/24-bit, deterministic.</p>
+        <span></span>
+      </div>
+      <div class="spec-row" data-od-id="feature-noise-dsp">
+        <span class="spec-num">04</span>
+        <span class="spec-name">Noise DSP</span>
+        <p class="spec-desc">White, pink and brown noise with correct spectral slopes, decorrelated stereo and calibrated
+        bed loudness — plus FFT-shaped 1/f<sup>α</sup> slopes in <span class="mono">noisemaker</span>.</p>
+        <span></span>
+      </div>
+      <div class="spec-row" data-od-id="feature-beatscope">
+        <span class="spec-num">05</span>
+        <span class="spec-name">beatscope</span>
+        <p class="spec-desc">STFT carrier/beat detection with L/R pairing and window-voted confidence. Cross-engine
+        validated against sbagen — all five brainwave bands match.</p>
+        <a class="spec-badge" href="https://github.com/desireco/entrain/blob/main/docs/validation.md" target="_blank" rel="noopener">5/5 MATCH</a>
+      </div>
+      <div class="spec-row" data-od-id="feature-mit">
+        <span class="spec-num">06</span>
+        <span class="spec-name">MIT licensed</span>
+        <p class="spec-desc">No SBaGen code anywhere — derived from public DSP technique and behavioral comparison.
+        Embed it anywhere, including commercial use.</p>
+        <span></span>
+      </div>
+    </div>
+  </div>
+</section>
 
-<span class="c"># make standalone noise beds</span>
-noisemaker brown 30m -o bed.flac
-noisemaker alpha 1h --alpha 1.4</pre>
-    <p class="note">entrain reimplements the classic <a href="https://desireco.github.io/sbagen/">SBaGen</a> — the original
-       program and its maintained fork have their own page. The roadmap and package docs live in
-       the <a href="https://github.com/desireco/entrain">repository README</a>.</p>
-  </section>
+<!-- ================= HANDBOOK ================= -->
+<section class="section" id="handbook" data-od-id="handbook">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Handbook</span>
+      <h2>Install, render, verify, generate.</h2>
+      <p class="section-sub">All from the terminal.</p>
+    </div>
+    <div class="handbook reveal" style="--d:100ms">
+      <div class="tab-rail" role="tablist" aria-label="Handbook sections" data-od-id="handbook-tabs">
+        <button class="tab-btn" role="tab" id="tab-install" aria-selected="true" aria-controls="panel-install">Install<span class="mono">go install</span></button>
+        <button class="tab-btn" role="tab" id="tab-render" aria-selected="false" aria-controls="panel-render">Render a session<span class="mono">entrain render</span></button>
+        <button class="tab-btn" role="tab" id="tab-verify" aria-selected="false" aria-controls="panel-verify">Verify any audio<span class="mono">beatscope</span></button>
+        <button class="tab-btn" role="tab" id="tab-noise" aria-selected="false" aria-controls="panel-noise">Generate noise beds<span class="mono">noisemaker</span></button>
+      </div>
+      <div class="terminal-panel" data-od-id="handbook-terminal">
+        <div class="term-head" aria-hidden="true"><i></i><i></i><i></i><span id="term-tab-name">entrain · install</span></div>
+        <div id="panel-install" role="tabpanel" aria-labelledby="tab-install" class="term-code">
+<span class="c"># from source</span><br>
+<span class="p">$</span> go install github.com/desireco/entrain/cmd/<span class="flag">entrain</span>@latest<br>
+<span class="p">$</span> go install github.com/desireco/entrain/cmd/<span class="flag">beatscope</span>@latest<br>
+<span class="p">$</span> go install github.com/desireco/entrain/cmd/<span class="flag">noisemaker</span>@latest<br>
+<br>
+<span class="c"># or grab a prebuilt binary:</span><br>
+<span class="c"># github.com/desireco/entrain/releases</span>
+        </div>
+        <div id="panel-render" role="tabpanel" aria-labelledby="tab-render" class="term-code" hidden>
+<span class="c"># the basics: .sbg → WAV (default)</span><br>
+<span class="p">$</span> entrain render focus.sbg<br>
+<span class="c"># 30 minutes only, custom output file</span><br>
+<span class="p">$</span> entrain render focus.sbg <span class="flag">-L</span> 0:30 <span class="flag">-o</span> focus-30min.wav<br>
+<span class="c"># lossless FLAC at 24-bit</span><br>
+<span class="p">$</span> entrain render focus.sbg <span class="flag">-f</span> flac <span class="flag">-b</span> 24<br>
+<span class="c"># MP3 at 320 kbps</span><br>
+<span class="p">$</span> entrain render focus.sbg <span class="flag">-f</span> mp3 <span class="flag">-q</span> 320<br>
+<span class="c"># preview the timeline plan + lint warnings — no audio written</span><br>
+<span class="p">$</span> entrain focus-10 <span class="flag">--dry-run</span>
+        </div>
+        <div id="panel-verify" role="tabpanel" aria-labelledby="tab-verify" class="term-code" hidden>
+<span class="c"># carriers, beat frequency and confidence per pair</span><br>
+<span class="p">$</span> beatscope focus.wav<br>
+<span class="p">$</span> beatscope focus.flac <span class="flag">--json</span><br>
+<span class="p">$</span> beatscope focus.wav <span class="flag">--min-confidence</span> 0.6<br>
+<br>
+<span class="c"># reads WAV (16/24-bit) and FLAC. MP3/OGG: convert to WAV first —</span><br>
+<span class="c"># no MP3 decoder in-tree, by design.</span>
+        </div>
+        <div id="panel-noise" role="tabpanel" aria-labelledby="tab-noise" class="term-code" hidden>
+<span class="p">$</span> noisemaker pink 30m <span class="flag">-o</span> bed.wav<br>
+<span class="p">$</span> noisemaker brown 1:30:00 <span class="flag">-o</span> bed.flac <span class="flag">-b</span> 24<br>
+<span class="p">$</span> noisemaker alpha 2h <span class="flag">--alpha</span> 1.4 <span class="flag">--level</span> 0.12 <span class="flag">--seed</span> 7 <span class="flag">-o</span> drift.wav<br>
+<br>
+<span class="c"># white, pink, brown — or any 1/f^α slope with --alpha.</span><br>
+<span class="c"># default level 0.155 RMS, calibrated to sit under binaural tones.</span><br>
+<span class="c"># deterministic with --seed.</span>
+        </div>
+        <div class="flags-strip">
+          <span>formats <b>-f wav|flac|mp3</b></span>
+          <span>depth <b>-b 16|24</b></span>
+          <span>mp3 bitrate <b>-q ≤ 320</b></span>
+          <span>length <b>-L h:mm[:ss]</b></span>
+          <span>output <b>-o file</b></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-  <section id="faq" class="container faq">
-    <h2>Questions</h2>
-    <details>
-      <summary>Why a rewrite?</summary>
-      <p>SBaGen (Jim Peters) is wonderful 2000s software — powerful, battle-tested, and GPLv2
-         with a bespoke C codebase. entrain keeps the functionality and modernizes everything
-         around it: permissive license, static binaries, modern formats. The full rationale is
-         in the <a href="https://github.com/desireco/entrain/blob/main/docs/migration-plan.md">migration plan</a>.</p>
-    </details>
-    <details>
-      <summary>Is entrain affiliated with SBaGen?</summary>
-      <p>No. entrain is an independent clean-room reimplementation — no SBaGen code was read or
-         copied, and it is not endorsed by Jim Peters. The original tool and its forks have
-         their own <a href="https://desireco.github.io/sbagen/">SBaGen page</a>.</p>
-    </details>
-    <details>
-      <summary>What's next?</summary>
-      <p>A native TOML session format ("trains"), EMDR bilateral voices, live playback, and a
-         web player — see the
-         <a href="https://github.com/desireco/entrain#status--roadmap">roadmap</a>.</p>
-    </details>
-  </section>
+<!-- ================= SESSION ANATOMY ================= -->
+<section class="section" id="sessions" data-od-id="sessions">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Plain text by design</span>
+      <h2>Anatomy of a session.</h2>
+      <p class="section-sub">A session is a few lines of plain text you can read, edit and version — no proprietary
+      format, no binary blobs.</p>
+    </div>
+    <div class="anatomy">
+      <div class="code-card reveal" data-od-id="session-code">
+        <div class="term-head" aria-hidden="true"><i></i><i></i><i></i><span>focus-40-pink.sbg</span></div>
+        <div class="term-body">
+          <div class="cm">## One-hour focus: 40 Hz gamma over a pink-noise bed</div>
+          <div class="ts">all-off:</div>
+          <div class="ts">-</div>
+          <div class="tline">focus-40:</div>
+          <div class="tline">pink/20&nbsp;&nbsp;180+40/30</div>
+          <div>&nbsp;</div>
+          <div class="ts">0:00:00&nbsp;&nbsp;focus-40</div>
+          <div class="ts">1:00:00&nbsp;&nbsp;all-off</div>
+        </div>
+        <div class="timeline-card" data-od-id="session-timeline">
+          <div class="timeline-bar" aria-hidden="true"><div class="seg-on"></div><div class="seg-off"></div></div>
+          <div class="timeline-lbl"><span>0:00:00 · focus in, 30 s changeover crossfade</span><span>1:00:00 · all-off</span></div>
+        </div>
+      </div>
+      <div class="anatomy-notes reveal" style="--d:120ms" data-od-id="session-notes">
+        <div class="anatomy-note">
+          <h3><span class="mono">01</span>Tone-set line</h3>
+          <p><span class="mono" style="color:var(--fg-2)">carrier+beat/amplitude</span> — amplitudes on a 0–100 scale,
+          keep the sum under 100. The engine pairs L/R carriers for a true binaural beat.</p>
+        </div>
+        <div class="anatomy-note">
+          <h3><span class="mono">02</span>Schedule lines</h3>
+          <p><span class="mono" style="color:var(--fg-2)">time name</span> — absolute, <span class="mono" style="color:var(--fg-2)">NOW</span>,
+          or <span class="mono" style="color:var(--fg-2)">+mm:ss</span> relative.</p>
+        </div>
+        <div class="anatomy-note">
+          <h3><span class="mono">03</span>Changeovers</h3>
+          <p>Crossfades happen automatically — 30 seconds, equal-power, with true tone continuity across segments.</p>
+        </div>
+        <div class="anatomy-note">
+          <h3><span class="mono">04</span>Session library</h3>
+          <p>A small, growing set ships in the repo under <span class="mono" style="color:var(--fg-2)">examples/</span> —
+          use as-is or edit in any text editor. Copy one, tweak the numbers, make it yours.</p>
+          <div class="lib-row" data-od-id="session-library">
+            <a class="lib-chip" href="https://github.com/desireco/entrain/blob/main/examples/focus-40-pink.sbg" target="_blank" rel="noopener">focus-40-pink <small>40 Hz γ over pink</small></a>
+            <a class="lib-chip" href="https://github.com/desireco/entrain/blob/main/examples/meditate-alpha.sbg" target="_blank" rel="noopener">meditate-alpha <small>10 Hz α · soft pink</small></a>
+            <a class="lib-chip" href="https://github.com/desireco/entrain/blob/main/examples/sleep-delta.sbg" target="_blank" rel="noopener">sleep-delta <small>3 Hz δ · brown</small></a>
+            <a class="lib-chip" href="https://github.com/desireco/entrain/blob/main/examples/pink-bed.sbg" target="_blank" rel="noopener">pink-bed <small>an hour of pure noise</small></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FAQ ================= -->
+<section class="section" id="faq" data-od-id="faq">
+  <div class="container faq-grid">
+    <div class="section-head reveal">
+      <span class="eyebrow">Questions</span>
+      <h2>Asked, answered.</h2>
+    </div>
+    <div class="faq-list reveal" style="--d:100ms" data-od-id="faq-list">
+      <div class="faq-item" data-od-id="faq-rewrite">
+        <h3>Why a rewrite?</h3>
+        <p>SBaGen (Jim Peters) is wonderful 2000s software — powerful, battle-tested, and GPLv2 with a bespoke C
+        codebase. Entrain keeps the functionality and modernizes everything around it: permissive license, static
+        binaries, modern formats. The full rationale is in the
+        <a href="https://github.com/desireco/entrain/blob/main/docs/migration-plan.md" target="_blank" rel="noopener">migration plan</a>.</p>
+      </div>
+      <div class="faq-item" data-od-id="faq-affiliation">
+        <h3>Is Entrain affiliated with SBaGen?</h3>
+        <p>No. Entrain is an independent clean-room reimplementation — no SBaGen code was read or copied, and it is not
+        endorsed by Jim Peters. The original tool and its forks have their own
+        <a href="https://desireco.github.io/sbagen/" target="_blank" rel="noopener">SBaGen page</a>.</p>
+      </div>
+      <div class="faq-item" data-od-id="faq-roadmap">
+        <h3>What's next?</h3>
+        <p>A native TOML session format ("trains"), EMDR bilateral voices, live playback, and a web player — see the
+        <a href="https://github.com/desireco/entrain#status--roadmap" target="_blank" rel="noopener">roadmap</a>.</p>
+      </div>
+    </div>
+  </div>
+</section>
 </main>
 
-<footer>
+<!-- ================= FOOTER ================= -->
+<footer data-od-id="footer">
   <div class="container">
-    <p><strong>entrain</strong> — a clean-room Go reimplementation of SBaGen.
-       An EntrainSpace project. &copy; 2026 Zeljko Dakic. MIT licensed.</p>
-    <p>SBaGen is &copy; Jim Peters (GPL v2); a maintained fork and the family overview live on the
-       <a href="https://desireco.github.io/sbagen/">SBaGen page</a>. entrain is not affiliated with or endorsed by Jim Peters or Ruan Klein.</p>
-    <div class="links">
-      <a href="https://desireco.github.io/sbagen/">SBaGen family</a>
-      <a href="https://uazu.net/sbagen/">SBaGen (original)</a>
-      <a href="https://github.com/ruanklein/sbagen-plus">SBaGen+</a>
-      <a href="https://github.com/desireco/entrain">GitHub</a>
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="brand" href="#top" aria-label="Back to top">
+          <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#fbfaf5" stroke="#d9d4c4"/><path d="M6 16 Q 9.5 8 13 16 T 20 16 T 26 16" stroke="#c2410c" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>
+          ENTRAIN
+        </a>
+        <p>The brainwave engine — a clean-room Go reimplementation of SBaGen. Sound in, state out.</p>
+      </div>
+      <div class="foot-col" data-od-id="footer-project">
+        <h4>Project</h4>
+        <ul>
+          <li><a href="https://github.com/desireco/entrain" target="_blank" rel="noopener">GitHub</a></li>
+          <li><a href="https://github.com/desireco/entrain/releases" target="_blank" rel="noopener">Releases</a></li>
+          <li class="plain">MIT licensed</li>
+        </ul>
+      </div>
+      <div class="foot-col" data-od-id="footer-family">
+        <h4>SBaGen family</h4>
+        <ul>
+          <li><a href="https://uazu.net/sbagen/" target="_blank" rel="noopener">SBaGen (original) · Jim Peters</a></li>
+          <li><a href="https://desireco.github.io/sbagen/" target="_blank" rel="noopener">SBaGen, maintained · GPLv2</a><a class="sub" href="https://github.com/desireco/sbagen" target="_blank" rel="noopener">github</a></li>
+          <li><a href="https://github.com/ruanklein/sbagen-plus" target="_blank" rel="noopener">SBaGen+ · Ruan Klein</a><a class="sub" href="https://github.com/ruanklein/synapseq" target="_blank" rel="noopener">synapseq</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="legal">
+      <span>An EntrainSpace project. © 2026 Zeljko Dakic.</span>
+      <span class="mono">SBaGen is © Jim Peters (GPL v2). Entrain is not affiliated with or endorsed by Jim Peters or Ruan Klein.</span>
+      <span class="mono" style="margin-left:auto">Clean-room Go · v0.1.0</span>
     </div>
   </div>
 </footer>
 
+<script>
+(function () {
+  'use strict';
+  var $ = function (s) { return document.querySelector(s); };
+  var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ============ Session definitions (mirror the shipped examples/) ============ */
+  var SESSIONS = {
+    'focus-40-pink': {
+      name: 'focus-40-pink', sub: '40 Hz γ over pink noise',
+      tones: [{ l: 180, r: 220, beat: 40, band: 'γ', amp: 0.30 }],
+      bed: 'pink', bedLevel: 0.09, out: 'focus-40-pink.mp3 · 320 kbps'
+    },
+    'meditate-alpha': {
+      name: 'meditate-alpha', sub: '10 Hz α over soft pink',
+      tones: [{ l: 200, r: 210, beat: 10, band: 'α', amp: 0.25 }],
+      bed: 'pink', bedLevel: 0.045, out: 'meditate-alpha.flac · 24-bit'
+    },
+    'sleep-delta': {
+      name: 'sleep-delta', sub: '3 Hz δ over brown noise',
+      tones: [{ l: 100, r: 103, beat: 3, band: 'δ', amp: 0.30 }],
+      bed: 'brown', bedLevel: 0.085, out: 'sleep-delta.flac · 24-bit'
+    }
+  };
+  var current = localStorage.getItem('entrain.session');
+  if (!SESSIONS[current]) current = 'focus-40-pink';
+
+  /* ============ Binaural engine ============ */
+  var engine = {
+    ctx: null, master: null, analyser: null,
+    toneSlots: [],       // [{oL,oR,gL,gR}]
+    bed: null, bedGain: null, bedType: null,
+    playing: false, elapsed: 0, lastTick: 0,
+
+    init: function () {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      this.ctx = new AC();
+      this.master = this.ctx.createGain();
+      this.master.gain.value = 0;
+      this.analyser = this.ctx.createAnalyser();
+      this.analyser.fftSize = 4096;
+      this.analyser.smoothingTimeConstant = 0.82;
+      this.master.connect(this.analyser);
+      this.analyser.connect(this.ctx.destination);
+      this.setVolume(parseFloat($('#volume').value));
+    },
+    noiseBuffer: function (type) {
+      var len = this.ctx.sampleRate * 4, buf = this.ctx.createBuffer(2, len, this.ctx.sampleRate);
+      for (var ch = 0; ch < 2; ch++) {
+        var d = buf.getChannelData(ch);
+        if (type === 'pink') {
+          var b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+          for (var i = 0; i < len; i++) {
+            var w = Math.random() * 2 - 1;
+            b0 = 0.99886 * b0 + w * 0.0555179; b1 = 0.99332 * b1 + w * 0.0750759;
+            b2 = 0.96900 * b2 + w * 0.1538520; b3 = 0.86650 * b3 + w * 0.3104856;
+            b4 = 0.55000 * b4 + w * 0.5329522; b5 = -0.7616 * b5 - w * 0.0168980;
+            d[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + w * 0.5362) * 0.06;
+            b6 = w * 0.115926;
+          }
+        } else { /* brown */
+          var last = 0;
+          for (var j = 0; j < len; j++) {
+            var w2 = Math.random() * 2 - 1;
+            last = (last + 0.02 * w2) / 1.02;
+            d[j] = last * 3.2;
+          }
+        }
+      }
+      return buf;
+    },
+    startBed: function (type, level, immediate) {
+      var t = this.ctx.currentTime, fade = immediate ? 0.001 : 0.8;
+      if (this.bed) {
+        var old = this.bed, oldG = this.bedGain;
+        oldG.gain.cancelScheduledValues(t); oldG.gain.setValueAtTime(oldG.gain.value, t);
+        oldG.gain.linearRampToValueAtTime(0.0001, t + fade);
+        setTimeout(function () { try { old.stop(); } catch (e) {} try { old.disconnect(); oldG.disconnect(); } catch (e) {} }, (fade + 0.2) * 1000);
+        this.bed = null; this.bedGain = null;
+      }
+      var src = this.ctx.createBufferSource(), g = this.ctx.createGain();
+      src.buffer = this.noiseBuffer(type); src.loop = true;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(level, t + fade);
+      src.connect(g); g.connect(this.master); src.start();
+      this.bed = src; this.bedGain = g; this.bedType = type;
+    },
+    applySession: function (def, immediate) {
+      var t = this.ctx.currentTime, glide = immediate ? 0.001 : 0.9;
+      for (var i = 0; i < Math.max(2, def.tones.length); i++) {
+        var tone = def.tones[i], slot = this.toneSlots[i];
+        if (tone) {
+          if (!slot) {
+            slot = { oL: this.ctx.createOscillator(), oR: this.ctx.createOscillator(),
+                     gL: this.ctx.createGain(), gR: this.ctx.createGain(),
+                     pL: this.ctx.createStereoPanner ? this.ctx.createStereoPanner() : null,
+                     pR: this.ctx.createStereoPanner ? this.ctx.createStereoPanner() : null };
+            slot.oL.type = 'sine'; slot.oR.type = 'sine';
+            slot.gL.gain.value = 0; slot.gR.gain.value = 0;
+            if (slot.pL) { slot.pL.pan.value = -1; slot.pR.pan.value = 1; }
+            slot.oL.connect(slot.gL); slot.oR.connect(slot.gR);
+            if (slot.pL) { slot.gL.connect(slot.pL); slot.pL.connect(this.master);
+                           slot.gR.connect(slot.pR); slot.pR.connect(this.master); }
+            else { slot.gL.connect(this.master); slot.gR.connect(this.master); }
+            slot.oL.start(); slot.oR.start();
+            this.toneSlots[i] = slot;
+            slot.oL.frequency.setValueAtTime(tone.l, t);
+            slot.oR.frequency.setValueAtTime(tone.r, t);
+          } else {
+            slot.oL.frequency.cancelScheduledValues(t);
+            slot.oR.frequency.cancelScheduledValues(t);
+            slot.oL.frequency.setValueAtTime(slot.oL.frequency.value, t);
+            slot.oR.frequency.setValueAtTime(slot.oR.frequency.value, t);
+            slot.oL.frequency.exponentialRampToValueAtTime(tone.l, t + glide);
+            slot.oR.frequency.exponentialRampToValueAtTime(tone.r, t + glide);
+          }
+          ['gL', 'gR'].forEach(function (k) {
+            var g = slot[k], target = tone.amp;
+            g.gain.cancelScheduledValues(t);
+            g.gain.setValueAtTime(Math.max(g.gain.value, 0.0001), t);
+            g.gain.linearRampToValueAtTime(target, t + (immediate ? 0.05 : 1.2));
+          });
+        } else if (slot) {
+          ['gL', 'gR'].forEach(function (k) {
+            var g = slot[k];
+            g.gain.cancelScheduledValues(t);
+            g.gain.setValueAtTime(Math.max(g.gain.value, 0.0001), t);
+            g.gain.linearRampToValueAtTime(0.0001, t + 0.6);
+          });
+        }
+      }
+      if (this.bedType !== def.bed) this.startBed(def.bed, def.bedLevel, immediate);
+      else if (this.bedGain) {
+        this.bedGain.gain.cancelScheduledValues(t);
+        this.bedGain.gain.setValueAtTime(this.bedGain.gain.value, t);
+        this.bedGain.gain.linearRampToValueAtTime(def.bedLevel, t + (immediate ? 0.05 : 1.2));
+      } else this.startBed(def.bed, def.bedLevel, immediate);
+    },
+    setVolume: function (v01) {
+      if (!this.master) return;
+      var target = Math.pow(v01, 1.6) * 0.9;
+      var t = this.ctx.currentTime;
+      this.master.gain.cancelScheduledValues(t);
+      this.master.gain.setTargetAtTime(this.playing ? target : this.master.gain.value, t, 0.08);
+      this._vol = target;
+    },
+    play: function () {
+      if (!this.ctx) this.init();
+      var self = this;
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+      if (!this.toneSlots.length || this.toneSlots.length < SESSIONS[current].tones.length) this.applySession(SESSIONS[current], true);
+      var t = this.ctx.currentTime;
+      this.master.gain.cancelScheduledValues(t);
+      this.master.gain.setValueAtTime(0.0001, t);
+      this.master.gain.linearRampToValueAtTime(this._vol || 0.5, t + 1.2);
+      this.playing = true;
+      this.lastTick = performance.now();
+    },
+    pause: function () {
+      if (!this.ctx) return;
+      var t = this.ctx.currentTime, self = this;
+      this.master.gain.cancelScheduledValues(t);
+      this.master.gain.setValueAtTime(this.master.gain.value, t);
+      this.master.gain.linearRampToValueAtTime(0.0001, t + 0.5);
+      this.playing = false;
+      setTimeout(function () { if (!self.playing && self.ctx) self.ctx.suspend(); }, 620);
+    }
+  };
+
+  /* ============ UI wiring ============ */
+  var playBtn = $('#play-btn'), statusLine = $('#status-line'), scopeState = $('#scope-state');
+  function fmt(s) {
+    var m = Math.floor(s / 60), r = Math.floor(s % 60);
+    return (m < 10 ? '0' + m : m) + ':' + (r < 10 ? '0' + r : r);
+  }
+  function syncSessionUI() {
+    var def = SESSIONS[current];
+    document.querySelectorAll('.chip').forEach(function (c) {
+      c.setAttribute('aria-pressed', String(c.dataset.session === current));
+    });
+    $('#t-name').textContent = def.name;
+    $('#t-sub').textContent = def.sub;
+    $('#ro-l').textContent = def.tones[0].l.toFixed(2) + ' Hz';
+    $('#ro-r').textContent = def.tones[0].r.toFixed(2) + ' Hz';
+    $('#ro-beat').innerHTML = '<em>' + def.tones[0].beat.toFixed(1) + ' Hz ' + def.tones[0].band + '</em>' +
+      (def.tones[1] ? ' · ' + def.tones[1].beat.toFixed(0) + ' Hz ' + def.tones[1].band : '');
+    $('#ro-bed').textContent = def.bed;
+    $('#ro-out').textContent = def.out;
+    localStorage.setItem('entrain.session', current);
+  }
+  document.querySelectorAll('.chip').forEach(function (c) {
+    c.addEventListener('click', function () {
+      current = c.dataset.session;
+      syncSessionUI();
+      if (engine.ctx) {
+        engine.applySession(SESSIONS[current], false);
+        if (!engine.playing) { engine.play(); setPlayState(true); }
+      }
+    });
+  });
+  function setPlayState(playing) {
+    playBtn.setAttribute('aria-pressed', String(playing));
+    playBtn.setAttribute('aria-label', playing ? 'Pause session' : 'Play session');
+    if (playing) {
+      scopeState.classList.add('live');
+      scopeState.innerHTML = '<span class="dot"></span>PLAYING';
+      statusLine.innerHTML = '<b>RENDERING</b> · 44.1 kHz stereo · phase-continuous oscillators · switch sessions mid-glide — retuning never clicks';
+    } else {
+      scopeState.classList.remove('live');
+      scopeState.innerHTML = '<span class="dot"></span>STANDBY';
+      statusLine.innerHTML = '<b>STANDBY</b> · 44.1 kHz stereo · press play to synthesize in-browser — nothing is downloaded, nothing is uploaded';
+    }
+  }
+  playBtn.addEventListener('click', function () {
+    if (engine.playing) { engine.pause(); setPlayState(false); }
+    else { engine.play(); setPlayState(true); }
+  });
+  $('#cta-launch').addEventListener('click', function () {
+    var studio = document.getElementById('studio');
+    var y = studio.getBoundingClientRect().top + window.pageYOffset - 76;
+    window.scrollTo({ top: y, behavior: reducedMotion ? 'auto' : 'smooth' });
+    setTimeout(function () { playBtn.focus({ preventScroll: true }); }, reducedMotion ? 0 : 650);
+  });
+  var vol = $('#volume');
+  vol.addEventListener('input', function () {
+    $('#vol-read').textContent = vol.value + '%';
+    localStorage.setItem('entrain.vol', vol.value);
+    if (engine.master) engine.setVolume(vol.value / 100);
+  });
+  var savedVol = localStorage.getItem('entrain.vol');
+  if (savedVol !== null) { vol.value = savedVol; $('#vol-read').textContent = savedVol + '%'; }
+  setInterval(function () {
+    if (engine.playing) {
+      var now = performance.now();
+      engine.elapsed += (now - engine.lastTick) / 1000;
+      engine.lastTick = now;
+      $('#elapsed').textContent = fmt(engine.elapsed);
+    } else engine.lastTick = performance.now();
+  }, 250);
+  syncSessionUI();
+
+  /* seamless ticker: duplicate the sequence */
+  var track = document.getElementById('ticker-track');
+  if (track) track.appendChild(track.querySelector('.ticker-seq').cloneNode(true));
+
+  /* ============ Scope visualizer ============ */
+  var scope = $('#scope-canvas'), sctx = scope.getContext('2d');
+  var freqData, waveData;
+  function fitCanvas(cv) {
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var r = cv.getBoundingClientRect();
+    if (r.width === 0) return null;
+    var w = Math.round(r.width * dpr), h = Math.round(r.height * dpr);
+    if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+    return dpr;
+  }
+  var NBARS = 56;
+  function drawScope() {
+    var dpr = fitCanvas(scope);
+    if (!dpr) return;
+    var W = scope.width, H = scope.height, mid = H / 2;
+    sctx.clearRect(0, 0, W, H);
+    /* grid */
+    sctx.strokeStyle = 'rgba(25,23,19,0.10)'; sctx.lineWidth = 1;
+    for (var gi = 1; gi < 5; gi++) { var gy = (H / 5) * gi; sctx.beginPath(); sctx.moveTo(0, gy); sctx.lineTo(W, gy); sctx.stroke(); }
+    var live = engine.playing && engine.analyser;
+    var i, x, bw = W / NBARS;
+    if (live) {
+      if (!freqData) { freqData = new Uint8Array(engine.analyser.frequencyBinCount); waveData = new Uint8Array(engine.analyser.fftSize); }
+      engine.analyser.getByteFrequencyData(freqData);
+      var sr = engine.ctx.sampleRate, binHz = sr / engine.analyser.fftSize;
+      var fMin = 30, fMax = 600;
+      for (i = 0; i < NBARS; i++) {
+        var f = fMin * Math.pow(fMax / fMin, i / (NBARS - 1));
+        var f2 = fMin * Math.pow(fMax / fMin, (i + 1) / (NBARS - 1));
+        var b0 = Math.max(1, Math.floor(f / binHz)), b1 = Math.max(b0 + 1, Math.floor(f2 / binHz));
+        var peak = 0;
+        for (var b = b0; b < b1 && b < freqData.length; b++) peak = Math.max(peak, freqData[b]);
+        var h = (peak / 255) * (H * 0.86);
+        var g = sctx.createLinearGradient(0, H - h, 0, H);
+        g.addColorStop(0, 'rgba(194,65,12,0.95)'); g.addColorStop(1, 'rgba(194,65,12,0.28)');
+        sctx.fillStyle = g;
+        sctx.fillRect(i * bw + bw * 0.18, H - h, bw * 0.64, h);
+      }
+      engine.analyser.getByteTimeDomainData(waveData);
+      sctx.beginPath();
+      var step = waveData.length / W;
+      for (i = 0; i < W; i++) {
+        var v = waveData[Math.floor(i * step)] / 128 - 1;
+        var y = mid + v * H * 0.32;
+        i === 0 ? sctx.moveTo(i, y) : sctx.lineTo(i, y);
+      }
+      sctx.strokeStyle = 'rgba(25,23,19,0.65)'; sctx.lineWidth = 1.2 * dpr; sctx.stroke();
+    } else {
+      /* idle: baseline + faint carrier ticks */
+      sctx.strokeStyle = 'rgba(111,105,90,0.4)'; sctx.lineWidth = 1 * dpr;
+      sctx.beginPath(); sctx.moveTo(0, mid); sctx.lineTo(W, mid); sctx.stroke();
+      sctx.fillStyle = 'rgba(194,65,12,0.35)';
+      for (i = 0; i < NBARS; i++) sctx.fillRect(i * bw + bw * 0.18, mid - 1, bw * 0.64, 2);
+    }
+  }
+  function loopScope() { drawScope(); requestAnimationFrame(loopScope); }
+  if (!reducedMotion) requestAnimationFrame(loopScope); else drawScope();
+
+  /* ============ Hero canvas: drifting sine field ============ */
+  var hero = $('#hero-canvas'), hctx = hero.getContext('2d');
+  var t0 = performance.now();
+  function drawHero(now) {
+    var dpr = fitCanvas(hero);
+    if (!dpr) { requestAnimationFrame(drawHero); return; }
+    var W = hero.width, H = hero.height, T = (now - t0) / 1000;
+    hctx.clearRect(0, 0, W, H);
+    var layers = [
+      { amp: 0.16, k: 1.6, sp: 0.11, col: 'rgba(194,65,12,0.26)', lw: 1.6 },
+      { amp: 0.10, k: 2.6, sp: 0.17, col: 'rgba(194,65,12,0.16)', lw: 1.2 },
+      { amp: 0.07, k: 4.1, sp: 0.23, col: 'rgba(63,59,50,0.10)', lw: 1 }
+    ];
+    for (var L = 0; L < layers.length; L++) {
+      var ly = layers[L];
+      hctx.beginPath();
+      for (var x = 0; x <= W; x += 6) {
+        var p = x / W;
+        var y = H * (0.62 + L * 0.07)
+          + Math.sin(p * Math.PI * 2 * ly.k + T * ly.sp * 2 * Math.PI + L * 1.7) * H * ly.amp
+          + Math.sin(p * Math.PI * 2 * (ly.k * 0.5) - T * ly.sp * 1.3 * Math.PI) * H * ly.amp * 0.5;
+        x === 0 ? hctx.moveTo(x, y) : hctx.lineTo(x, y);
+      }
+      hctx.strokeStyle = ly.col; hctx.lineWidth = ly.lw * dpr; hctx.stroke();
+    }
+    if (!reducedMotion) requestAnimationFrame(drawHero);
+  }
+  requestAnimationFrame(drawHero);
+  window.addEventListener('resize', function () { if (reducedMotion) { drawHero(performance.now()); drawScope(); } });
+
+  /* ============ Handbook tabs ============ */
+  var tabs = document.querySelectorAll('.tab-btn');
+  var tabNames = { install: 'install', render: 'render', verify: 'verify', noise: 'noise' };
+  function selectTab(btn) {
+    tabs.forEach(function (b) {
+      var on = b === btn;
+      b.setAttribute('aria-selected', String(on));
+      document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+    });
+    $('#term-tab-name').textContent = 'entrain · ' + tabNames[btn.getAttribute('aria-controls').replace('panel-', '')];
+  }
+  tabs.forEach(function (b, idx) {
+    b.addEventListener('click', function () { selectTab(b); });
+    b.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { tabs[(idx + 1) % tabs.length].focus(); }
+      if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { tabs[(idx - 1 + tabs.length) % tabs.length].focus(); }
+    });
+  });
+
+  /* ============ Reveal + scroll spy ============ */
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+  var spy = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (en.isIntersecting) {
+        document.querySelectorAll('.nav-links a').forEach(function (a) {
+          a.classList.toggle('active', a.dataset.spy === en.target.id);
+        });
+      }
+    });
+  }, { rootMargin: '-40% 0px -55% 0px' });
+  ['studio', 'engine', 'handbook', 'sessions', 'faq'].forEach(function (id) { spy.observe(document.getElementById(id)); });
+})();
+</script>
 </body>
 </html>
