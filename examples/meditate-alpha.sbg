@@ -1,0 +1,14 @@
+## Meditate alpha — 10 Hz alpha binaural over a soft pink bed
+##
+## 200 Hz carrier, 10 Hz beat (alpha). Gentle amplitudes; keep
+## playback volume low, the tones just above the bed.
+##
+## Headphones required. Render:
+##   entrain render meditate-alpha.sbg -f flac
+
+all-off: -
+
+meditate-alpha: pink/15 200+10/25
+
+0:00:00 meditate-alpha
+1:00:00 all-off
