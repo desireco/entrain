@@ -3,14 +3,48 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Entrain — the brainwave engine</title>
-<meta name="description" content="Entrain is a clean-room Go reimplementation of the SBaGen workflow: render .sbg binaural-beat sessions to WAV, FLAC and MP3, verify audio with beatscope, generate noise beds — and play sessions live in your browser.">
+<title>Entrain — the brainwave engine (binaural beats in Go)</title>
+<meta name="description" content="A clean-room Go engine for brainwave entrainment. Render .sbg binaural sessions to WAV, FLAC and MP3, verify with beatscope — and play live in your browser.">
+<meta name="theme-color" content="#f2f0e8">
+<link rel="canonical" href="https://entrain.cc/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<!-- Social cards: X reads twitter:*, Facebook and LinkedIn read og:* -->
+<meta property="og:site_name" content="Entrain">
 <meta property="og:title" content="Entrain — the brainwave engine">
 <meta property="og:description" content="Sound in. State out. A clean-room Go engine for brainwave entrainment — .sbg sessions to WAV, FLAC and MP3, verified with beatscope.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://entrain.cc/">
-<link rel="canonical" href="https://entrain.cc/">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23f2f0e8'/%3E%3Cpath d='M4 16 Q 8 7 12 16 T 20 16 T 28 16' stroke='%23c2410c' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<meta property="og:image" content="https://entrain.cc/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:alt" content="Entrain — Sound in. State out. .sbg sessions rendered to WAV, FLAC and MP3 in clean-room Go.">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@desireco">
+<meta name="twitter:title" content="Entrain — the brainwave engine">
+<meta name="twitter:description" content="Sound in. State out. A clean-room Go engine for brainwave entrainment — .sbg sessions to WAV, FLAC and MP3, verified with beatscope.">
+<meta name="twitter:image" content="https://entrain.cc/og.png">
+<meta name="twitter:image:alt" content="Entrain — Sound in. State out. .sbg sessions rendered to WAV, FLAC and MP3 in clean-room Go.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Entrain",
+  "url": "https://entrain.cc/",
+  "image": "https://entrain.cc/og.png",
+  "description": "A clean-room Go engine for brainwave entrainment: render .sbg binaural-beat sessions to WAV, FLAC and MP3, verify any renderer's output with beatscope, and play sessions live in the browser.",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Linux, macOS, Windows",
+  "softwareVersion": "0.1.0",
+  "license": "https://opensource.org/licenses/MIT",
+  "author": { "@type": "Organization", "name": "Desireco", "url": "https://github.com/desireco" },
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "sameAs": ["https://github.com/desireco/entrain"]
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
