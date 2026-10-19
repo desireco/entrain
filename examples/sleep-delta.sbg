@@ -1,0 +1,15 @@
+## Sleep delta — slow 3 Hz delta binaural over a brown-noise bed
+##
+## 100 Hz carrier, 3 Hz beat (delta). Brown bed sits lower and darker
+## than pink; use a low playback volume and a sleep timer.
+##
+## Headphones required (comfortable flat ones, not on-ear clamps).
+## Render:
+##   entrain render sleep-delta.sbg -f flac -b 24
+
+all-off: -
+
+sleep-delta: brown/25 100+3/30
+
+0:00:00 sleep-delta
+1:00:00 all-off

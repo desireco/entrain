@@ -1,0 +1,15 @@
+## Focus 40 — 40 Hz gamma binaural over a pink-noise bed
+##
+## 180 Hz carrier, 40 Hz beat (gamma). Amplitudes are on the 0-100
+## scale; the total per tone-set stays under 100 to avoid clipping.
+##
+## Headphones required -- binaural beats collapse on speakers.
+## Render 30 minutes to MP3:
+##   entrain render focus-40-pink.sbg -f mp3 -L 0:30
+
+all-off: -
+
+focus-40: pink/20 180+40/30
+
+0:00:00 focus-40
+1:00:00 all-off

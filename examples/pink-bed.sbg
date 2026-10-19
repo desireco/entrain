@@ -1,0 +1,12 @@
+## Pink bed — one hour of pink noise at half level
+##
+## No binaural tones: a clean bed for mixing under your own sessions
+## or for masking background noise. Render:
+##   entrain render pink-bed.sbg -f flac -b 24
+
+all-off: -
+
+pink-bed: pink/50
+
+0:00:00 pink-bed
+1:00:00 all-off
