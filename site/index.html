@@ -325,6 +325,8 @@ a.spec-badge:hover { color: var(--accent-on); background: var(--success); border
 .term-code .c { color: var(--muted); }
 .term-code .p { color: var(--accent); }
 .term-code .flag { color: var(--fg); }
+.term-code a { color: var(--accent); }
+.term-code a:hover { color: var(--accent-hover); text-decoration: underline; }
 .flags-strip {
   display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-5); padding: var(--space-4) var(--space-6);
   border-top: 1px solid var(--border-soft); font-family: var(--font-mono); font-size: 13px; color: var(--muted);
@@ -478,6 +480,7 @@ h2 { letter-spacing: -.02em; }
         <svg class="btn-play-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1.5v13l11-6.5z"/></svg>
         Launch the live studio
       </button>
+      <a class="link-quiet" href="https://github.com/desireco/entrain/releases/latest" target="_blank" rel="noopener">Download binaries</a>
       <a class="link-quiet" href="#handbook">Install the CLI first</a>
     </div>
     <div class="hero-terminal reveal" style="--d:320ms" data-od-id="hero-terminal">
@@ -647,8 +650,10 @@ h2 { letter-spacing: -.02em; }
 <span class="p">$</span> go install github.com/desireco/entrain/cmd/<span class="flag">beatscope</span>@latest<br>
 <span class="p">$</span> go install github.com/desireco/entrain/cmd/<span class="flag">noisemaker</span>@latest<br>
 <br>
-<span class="c"># or grab a prebuilt binary:</span><br>
-<span class="c"># github.com/desireco/entrain/releases</span>
+<span class="c"># or grab a prebuilt binary — each tarball carries entrain,</span><br>
+<span class="c"># beatscope and noisemaker, with sha256 checksums alongside:</span><br>
+<a href="https://github.com/desireco/entrain/releases/latest/download/entrain-darwin-arm64.tar.gz" target="_blank" rel="noopener">macOS · Apple silicon</a> · <a href="https://github.com/desireco/entrain/releases/latest/download/entrain-darwin-amd64.tar.gz" target="_blank" rel="noopener">macOS · Intel</a> · <a href="https://github.com/desireco/entrain/releases/latest/download/entrain-linux-amd64.tar.gz" target="_blank" rel="noopener">Linux · x86-64</a> · <a href="https://github.com/desireco/entrain/releases/latest/download/entrain-linux-arm64.tar.gz" target="_blank" rel="noopener">Linux · ARM64</a> · <a href="https://github.com/desireco/entrain/releases/latest/download/entrain-windows-amd64.tar.gz" target="_blank" rel="noopener">Windows · x86-64</a><br>
+<a href="https://github.com/desireco/entrain/releases" target="_blank" rel="noopener">all releases</a>
         </div>
         <div id="panel-render" role="tabpanel" aria-labelledby="tab-render" class="term-code" hidden>
 <span class="c"># the basics: .sbg → WAV (default)</span><br>
