@@ -7,7 +7,7 @@ output, and a permissive **MIT license**.
 Part of the **EntrainSpace** brand. CLI binary: `entrain`. Sequence files are plain TOML —
 informally, *trains*.
 
-Project homepage: **[desireco.github.io/entrain](https://desireco.github.io/entrain/)**
+Project homepage: **[entrain.cc](https://entrain.cc/)**
 
 ## What it does
 
