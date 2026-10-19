@@ -1,0 +1,10 @@
+# Personal sessions — kept out of git on purpose.
+#
+# Everything in this folder is gitignored except this .gitignore and
+# README.md. Drop your own .sbg files here and render them with:
+#
+#   entrain render sessions/<name>.sbg -f mp3
+#
+*
+!.gitignore
+!README.md
