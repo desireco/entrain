@@ -104,6 +104,10 @@ func BuildPlan(s *Sequence, opts PlanOpts) (*Plan, error) {
 			if ms, err := parseMillis(s.Opts.FadeMS); err == nil && ms > 0 {
 				plan.Crossfade = ms
 			}
+		} else if s.Opts.Changeover != "" {
+			if d, err := parseFadeDur(s.Opts.Changeover); err == nil && d > 0 {
+				plan.Crossfade = d
+			}
 		}
 	}
 
@@ -316,7 +320,15 @@ func buildEnvelopes(plan *Plan, events []Event) {
 // 12 chords (chord error <1% of the ramp — inaudible) so envelopes stay
 // piecewise-linear for the renderer.
 func ramp(env []BP, t time.Duration, from, to float64, dur time.Duration, curve byte) []BP {
-	if dur <= 0 || curve == 0 || from == to {
+	if dur < 0 {
+		dur = 0
+	}
+	if dur == 0 {
+		// Hard cut: a 1 ns ramp leaves a hold plateau at the old level and
+		// switches (audibly) instantly, surviving normalizeEnv's dedup.
+		dur = time.Nanosecond
+	}
+	if curve == 0 || from == to {
 		return append(env, BP{t, from}, BP{t + dur, to})
 	}
 	const pieces = 12

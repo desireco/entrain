@@ -27,6 +27,25 @@ noisemaker brown 30m -o bed.flac   # standalone noise, entrain-calibrated level
 noisemaker alpha 1h --alpha 1.4    # arbitrary 1/f^alpha slopes
 ```
 
+## Extended .sbg syntax
+
+Entrain's own voices and transitions, layered onto the `.sbg` grammar.
+Original sbagen files parse unchanged; files using extensions carry an
+`## extended syntax: entrain` marker (entrain warns when it's missing):
+
+```
+flip:105+10/20 rate0.05     # hemisphere-flip binaural: the pair swings sides
+emdr:600/30 rate1.0         # bilateral tone taps, hard L/R alternation
+doppler:250+10/20 rate0.1   # cyclic pitch swing; the beat stays constant
+
+00:00:30 alpha fade10 ease-in   # 10 s changeover, quadratic ease-in
+-changeover 15                  # session-wide default changeover (seconds or h:mm:ss)
+```
+
+See `examples/flip-10.sbg`, `examples/emdr-taps.sbg`,
+`examples/emdr-focus.sbg` and `examples/library/` for sessions using
+them.
+
 The v0 reader covers the common `.sbg` subset: binaural tones (`carrier±beat/amp`),
 plain sines, pink-noise beds, absolute/`NOW`/relative times, nested blocks, and
 sbagen's default 30-second crossfades with tone continuity across changeovers

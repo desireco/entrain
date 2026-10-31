@@ -61,8 +61,8 @@ type ToneSet struct {
 type Event struct {
 	When            time.Duration
 	Set             string
-	FadeIn, FadeOut byte // fade chars: in '<','-','=' ; out '>','-','=' — default '-','-'
-	Slide           bool // '->' present
+	FadeIn, FadeOut byte          // fade chars: in '<','-','=' ; out '>','-','=' — default '-','-'
+	Slide           bool          // '->' present
 	Fade            time.Duration // entrain extension: changeover length at this boundary (-1 = default)
 	Curve           byte          // entrain extension: 'i' = ease-in, 'o' = ease-out, 0 = linear
 	Line            int
@@ -75,6 +75,8 @@ type Options struct {
 	Mix      string // -m file
 	Length   string // -L time, raw text (e.g. "0:30")
 	FadeMS   string // -F ms, raw text (fade/crossfade length override)
+
+	Changeover string // entrain extension: -changeover <dur>, session-wide default changeover
 	Clock    string // -T time, raw text (live-mode start; offline renders anchor at the first event)
 	Predef   string // -p <spec…> (unsupported)
 }
@@ -135,6 +137,9 @@ type parser struct {
 	pending []Event // top-level timeline entries, pre block-expansion
 	blocks  map[string][]Event
 
+	extSyntax bool // an entrain-extension construct was parsed
+	extHeader bool // an '## extended syntax: entrain' marker was seen
+
 	// absolute-time anchors: t0 = the first anchor seen; resolved top-level
 	// times are offsets from it. NOW resolves to t0 (an offline render
 	// starts at the first event).
@@ -156,7 +161,11 @@ func (p *parser) run(src string) error {
 		// full-line '##' comments form the printed description.
 		if i := strings.IndexByte(line, '#'); i >= 0 {
 			if i == 0 && strings.HasPrefix(line, "##") {
-				p.seq.Description = append(p.seq.Description, strings.TrimPrefix(line, "##"))
+				desc := strings.TrimPrefix(line, "##")
+				p.seq.Description = append(p.seq.Description, desc)
+				if strings.Contains(strings.ToLower(desc), "extended syntax: entrain") {
+					p.extHeader = true
+				}
 			}
 			line = strings.TrimSpace(line[:i])
 		}
@@ -190,7 +199,7 @@ func (p *parser) run(src string) error {
 		if f := strings.Fields(line); len(f) >= 1 && strings.HasSuffix(f[0], ":") {
 			name := strings.TrimSuffix(f[0], ":")
 			if !nameRe.MatchString(name) {
-				return fmt.Errorf("line %d: bad name %q", p.line, name)
+				return fmt.Errorf("line %d: bad name %q (names allow letters, digits, '-', '_'; a '.' likely belongs in the spec values)", p.line, name)
 			}
 			if len(f) == 2 && f[1] == "{" {
 				block = &blockCtx{name: name}
@@ -217,6 +226,9 @@ func (p *parser) run(src string) error {
 
 	if block != nil {
 		return fmt.Errorf("line %d: block %q not closed with '}'", p.line, block.name)
+	}
+	if p.extSyntax && !p.extHeader {
+		p.warn(p.line, "file uses entrain extended syntax; add a '## extended syntax: entrain' marker so readers know original sbagen cannot run it")
 	}
 
 	for _, ev := range p.pending {
@@ -281,6 +293,7 @@ func (p *parser) timelineLine(line string, inBlock bool) (Event, error) {
 			if last == "ease-out" {
 				ev.Curve = 'o'
 			}
+			p.extSyntax = true
 			fields = fields[:len(fields)-1]
 			continue
 		}
@@ -290,6 +303,7 @@ func (p *parser) timelineLine(line string, inBlock bool) (Event, error) {
 				return ev, fmt.Errorf("line %d: bad fade length %q", p.line, last)
 			}
 			ev.Fade = d
+			p.extSyntax = true
 			fields = fields[:len(fields)-1]
 			continue
 		}
@@ -440,6 +454,8 @@ func (p *parser) optionLine(line string) {
 			p.seq.Opts.FadeMS = next()
 		case tok == "-T":
 			p.seq.Opts.Clock = next()
+		case tok == "-changeover":
+			p.seq.Opts.Changeover = next()
 		case tok == "-p":
 			p.seq.Opts.Predef = strings.Join(fields[i+1:], " ")
 			p.warn(p.line, "predefined sequences (-p) not supported")
@@ -485,6 +501,7 @@ func (p *parser) toneSetLine(name, rest string) (ToneSet, error) {
 		// preceding flip/emdr/doppler voice (entrain extension; sbagen-valid
 		// syntax is never consumed this way).
 		if spec.Kind == Flip || spec.Kind == EMDR || spec.Kind == Doppler {
+			p.extSyntax = true
 			sawDepth := false
 			for i+1 < len(fields) {
 				m := rateAttr.FindStringSubmatch(fields[i+1])

@@ -1,6 +1,7 @@
 package seq_test
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -91,5 +92,70 @@ NOW a
 	}
 	if gl < 0.08 || gl > 0.12 {
 		t.Errorf("linear entrance AmpAt = %g, want ~25%% of 0.4", gl)
+	}
+}
+
+func TestSessionChangeoverOption(t *testing.T) {
+	p := planOf(t, `
+-changeover 10
+off: -
+a: 200+10/20
+
+NOW a
++0:00:40 off
+`, seq.PlanOpts{})
+	if p.Crossfade != 10*time.Second {
+		t.Errorf("Crossfade = %v, want 10s from -changeover", p.Crossfade)
+	}
+}
+
+func TestExtendedSyntaxHeaderLint(t *testing.T) {
+	s, err := seq.Parse("off: -\nf: flip:105+10/25\n\nNOW f\n+0:00:02 off\n")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var warned bool
+	for _, w := range s.Warnings {
+		if strings.Contains(w.Msg, "extended syntax") {
+			warned = true
+		}
+	}
+	if !warned {
+		t.Error("extended syntax without header marker should warn")
+	}
+
+	s, err = seq.Parse("## extended syntax: entrain\n\noff: -\nf: flip:105+10/25\n\nNOW f\n+0:00:02 off\n")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, w := range s.Warnings {
+		if strings.Contains(w.Msg, "extended syntax") {
+			t.Errorf("marker present but warned: %v", w.Msg)
+		}
+	}
+}
+
+func TestFadeZeroHardCut(t *testing.T) {
+	p := planOf(t, `
+off: -
+a: 200+10/20
+b: pink/30
+
+NOW a
++0:00:30 b fade0
++0:00:40 off
+`, seq.PlanOpts{})
+	va, vb := voice(p, "bin:205/195"), voice(p, "pink")
+	if va == nil || vb == nil {
+		t.Fatalf("missing voices: %v %v", va, vb)
+	}
+	if got := va.AmpAt(29 * time.Second); got != 0.2 {
+		t.Errorf("a at 29s = %g, want full 0.2 (plateau)", got)
+	}
+	if got := va.AmpAt(30*time.Second + time.Microsecond); got != 0 {
+		t.Errorf("a just past 30s = %g, want hard cut", got)
+	}
+	if got := vb.AmpAt(30*time.Second + time.Microsecond); got == 0 {
+		t.Error("b just past 30s = 0, want instant entrance")
 	}
 }
