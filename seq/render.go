@@ -36,6 +36,9 @@ func (p *Plan) Render(rate int) []float64 {
 		case Flip:
 			l, r := EarFreqs(vp.Spec)
 			v = synth.NewFlipBinaural(sr, l, r, vp.Spec.Rate)
+		case Doppler:
+			l, r := EarFreqs(vp.Spec)
+			v = synth.NewDopplerBinaural(sr, l, r, vp.Spec.Rate, vp.Spec.Depth)
 		case EMDR:
 			v = synth.NewEMDR(sr, vp.Spec.Carrier, vp.Spec.Rate)
 		case Mix:

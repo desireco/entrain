@@ -91,3 +91,37 @@ func (e *EMDR) Next() (l, r float64) {
 	}
 	return 0, s
 }
+
+// DopplerBinaural is a binaural pair whose two tones glide up and down
+// together on a slow sinusoid — the way a passing vehicle's pitch moves.
+// Both ears detune by the same factor, so the beat rate itself stays
+// constant while the carrier sweeps ±depth cents around its center. This
+// is entrain's native doppler (the the reference library effect, cleaned up), not an
+// sbagen construct.
+type DopplerBinaural struct {
+	sr           float64
+	a, b         *Osc
+	left, right  float64 // base per-ear frequencies
+	rate, depth  float64 // full cycles/s; peak detune in cents
+	samples      int64
+}
+
+// NewDopplerBinaural creates a doppler pair: left/right are the per-ear
+// frequencies (EarFreqs wiring), rate the swing in full cycles per second,
+// depth the peak detune in cents.
+func NewDopplerBinaural(sr, left, right, rate, depth float64) *DopplerBinaural {
+	return &DopplerBinaural{
+		sr: sr, a: NewOsc(sr, left), b: NewOsc(sr, right),
+		left: left, right: right, rate: rate, depth: depth,
+	}
+}
+
+// Next returns one sample frame, advancing the swing.
+func (d *DopplerBinaural) Next() (l, r float64) {
+	t := float64(d.samples) / d.sr
+	d.samples++
+	f := math.Pow(2, d.depth/1200*math.Sin(2*math.Pi*d.rate*t))
+	d.a.SetFreq(d.left * f)
+	d.b.SetFreq(d.right * f)
+	return d.a.Next(), d.b.Next()
+}

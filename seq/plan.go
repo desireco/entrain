@@ -251,7 +251,7 @@ func buildEnvelopes(plan *Plan, events []Event) {
 		}
 		for _, sp := range ts.Specs {
 			if sp.Kind != White && sp.Kind != Pink && sp.Kind != Brown && sp.Kind != Binaural && sp.Kind != Mix &&
-				sp.Kind != Flip && sp.Kind != EMDR {
+				sp.Kind != Flip && sp.Kind != EMDR && sp.Kind != Doppler {
 				continue
 			}
 			k := keyOf(sp)
@@ -348,6 +348,9 @@ func keyOf(sp ToneSpec) string {
 	case Flip:
 		l, r := EarFreqs(sp)
 		return fmt.Sprintf("flip:%.6g/%.6g@%.4g", l, r, sp.Rate)
+	case Doppler:
+		l, r := EarFreqs(sp)
+		return fmt.Sprintf("dop:%.6g/%.6g@%.4g^%.4g", l, r, sp.Rate, sp.Depth)
 	case EMDR:
 		return fmt.Sprintf("emdr:%.6g@%.4g", sp.Carrier, sp.Rate)
 	}

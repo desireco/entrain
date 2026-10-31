@@ -10,11 +10,12 @@ substitution is used and noted in the session header:
 
 - isochronic tones → binaural pairs at the same beat rates (`alert-flow`)
 - panned noise → wide decorrelated stereo beds (`neutral-relax`)
-- the `doppler` effect → stepped beat drift between phases
-  (`binaural-doppler`)
 - `smooth N` / ease-in/out curve shapes → entrain's standard 30 s
   linear changeovers
 - templates → values inlined
+
+Doppler is native since entrain gained the `doppler:` voice:
+`binaural-doppler` uses it directly (no substitution).
 
 | Session | Length | What it is |
 |---|---|---|
@@ -26,7 +27,7 @@ substitution is used and noted in the session header:
 | `beta.sbg` | 25 min | Pure beta: 13 → 22 Hz, no bed |
 | `theta.sbg` | 25 min | Pure theta: 7 → 4 Hz, no bed |
 | `delta.sbg` | 25 min | Pure delta: 3 → 0.5 Hz, no bed |
-| `binaural-doppler.sbg` | 25 min | Alpha/theta phases with drifting beat |
+| `binaural-doppler.sbg` | 25 min | Alpha/theta phases, native doppler pitch swing |
 | `good-night.sbg` | 25 min | Sleep descent down to 2 Hz delta |
 
 Render any of them:

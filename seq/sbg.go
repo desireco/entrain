@@ -33,6 +33,7 @@ const (
 	Wave                     // 'wave<n>:…' — read, not yet rendered
 	Flip                     // 'flip:<carrier>±<beat>/<amp>' — entrain extension: hemisphere-flip binaural
 	EMDR                     // 'emdr:<freq>/<amp>' — entrain extension: bilateral tone bursts
+	Doppler                  // 'doppler:<carrier>±<beat>/<amp>' — entrain extension: cyclic pitch swing
 )
 
 // ToneSpec is one entry of a tone-set.
@@ -40,8 +41,9 @@ type ToneSpec struct {
 	Kind    ToneKind
 	Carrier float64 // Binaural; Bell: strike frequency; Spin: delay width in µs
 	Beat    float64 // Binaural/Spin
-	Sign    int     // Binaural/Flip: +1 = '+' (left ear carries the higher tone), −1 = '-', 0 = plain sine
-	Rate    float64 // Flip/EMDR: modulation rate in Hz (kind default applied by the parser when absent)
+	Sign    int     // Binaural/Flip/Doppler: +1 = '+' (left ear carries the higher tone), −1 = '-', 0 = plain sine
+	Rate    float64 // Flip/EMDR/Doppler: modulation rate in Hz (kind default applied by the parser when absent)
+	Depth   float64 // Doppler: peak detune in cents
 	Amp     float64 // 0–100 scale
 	Raw     string  // original spec text, for plan display
 }
@@ -435,7 +437,8 @@ var (
 	wave     = regexp.MustCompile(`^wave[0-9]+:.+$`)
 	flipRe   = regexp.MustCompile(`^flip:([0-9]*\.?[0-9]+)([+-])([0-9]*\.?[0-9]+)/([0-9]*\.?[0-9]+)$`)
 	emdrRe   = regexp.MustCompile(`^emdr:([0-9]*\.?[0-9]+)/([0-9]*\.?[0-9]+)$`)
-	rateAttr = regexp.MustCompile(`^rate([0-9]*\.?[0-9]+)$`)
+	dopplRe  = regexp.MustCompile(`^doppler:([0-9]*\.?[0-9]+)([+-])([0-9]*\.?[0-9]+)/([0-9]*\.?[0-9]+)$`)
+	rateAttr = regexp.MustCompile(`^(rate|depth)([0-9]*\.?[0-9]+)$`)
 	binaural = regexp.MustCompile(`^([0-9]*\.?[0-9]+)([+-])([0-9]*\.?[0-9]+)/([0-9]*\.?[0-9]+)$`)
 	sine     = regexp.MustCompile(`^([0-9]*\.?[0-9]+)/([0-9]*\.?[0-9]+)$`)
 )
@@ -451,24 +454,33 @@ func (p *parser) toneSetLine(name, rest string) (ToneSet, error) {
 		if err != nil {
 			return ts, fmt.Errorf("line %d: %v", p.line, err)
 		}
-		// Trailing `rate<hz>` attribute tokens attach to the preceding
-		// flip/emdr voice (entrain extension; sbagen-valid syntax is
-		// never consumed this way).
-		if spec.Kind == Flip || spec.Kind == EMDR {
+		// Trailing `rate<hz>`/`depth<cents>` attribute tokens attach to the
+		// preceding flip/emdr/doppler voice (entrain extension; sbagen-valid
+		// syntax is never consumed this way).
+		if spec.Kind == Flip || spec.Kind == EMDR || spec.Kind == Doppler {
+			sawDepth := false
 			for i+1 < len(fields) {
 				m := rateAttr.FindStringSubmatch(fields[i+1])
 				if m == nil {
 					break
 				}
-				r, err := strconv.ParseFloat(m[1], 64)
-				if err != nil || r <= 0 {
-					return ts, fmt.Errorf("line %d: spec %q: bad rate %q", p.line, raw, fields[i+1])
+				r, err := strconv.ParseFloat(m[2], 64)
+				if err != nil || (m[1] == "rate" && r <= 0) || r < 0 {
+					return ts, fmt.Errorf("line %d: spec %q: bad %s %q", p.line, raw, m[1], fields[i+1])
 				}
-				spec.Rate = r
+				if m[1] == "rate" {
+					spec.Rate = r
+				} else {
+					spec.Depth = r
+					sawDepth = true
+				}
 				i++
 			}
 			if spec.Rate == 0 {
 				spec.Rate = defaultRate(spec.Kind)
+			}
+			if spec.Kind == Doppler && spec.Depth == 0 && !sawDepth {
+				spec.Depth = 15 // cents; a gentle, clearly audible sweep
 			}
 		}
 		ts.Specs = append(ts.Specs, spec)
@@ -482,7 +494,7 @@ func (p *parser) toneSetLine(name, rest string) (ToneSet, error) {
 	var sum float64
 	for _, sp := range ts.Specs {
 		sum += sp.Amp
-		if (sp.Kind == Binaural || sp.Kind == Flip) && sp.Beat > 0 {
+		if (sp.Kind == Binaural || sp.Kind == Flip || sp.Kind == Doppler) && sp.Beat > 0 {
 			if sp.Carrier < 50 || sp.Carrier > 1000 {
 				p.warn(p.line, fmt.Sprintf("%s: carrier %.4g Hz outside sbagen's recommended 50–1000 Hz", sp.Raw, sp.Carrier))
 			}
@@ -492,6 +504,14 @@ func (p *parser) toneSetLine(name, rest string) (ToneSet, error) {
 		}
 		if sp.Kind == Flip && sp.Rate > 0.5 {
 			p.warn(p.line, fmt.Sprintf("%s: flip rate %.4g Hz is above 0.5 — faster swings blur the beat percept", sp.Raw, sp.Rate))
+		}
+		if sp.Kind == Doppler {
+			if sp.Rate > 0.5 {
+				p.warn(p.line, fmt.Sprintf("%s: doppler rate %.4g Hz is above 0.5 — vibrato territory, not doppler", sp.Raw, sp.Rate))
+			}
+			if sp.Depth > 100 {
+				p.warn(p.line, fmt.Sprintf("%s: doppler depth %.4g cents is above 100 — a very wide sweep", sp.Raw, sp.Depth))
+			}
 		}
 		if sp.Kind == EMDR && (sp.Rate < 0.1 || sp.Rate > 3) {
 			p.warn(p.line, fmt.Sprintf("%s: emdr rate %.4g Hz outside the typical 0.1–3 Hz pacing", sp.Raw, sp.Rate))
@@ -602,6 +622,32 @@ func (p *parser) parseSpec(raw string) (ToneSpec, error) {
 		spec.Sign = 1
 		if m[2] == "-" {
 			spec.Sign = -1
+		}
+		return spec, nil
+	case strings.HasPrefix(raw, "doppler:"):
+		m := dopplRe.FindStringSubmatch(raw)
+		if m == nil {
+			return spec, fmt.Errorf("spec %q: bad doppler spec (want doppler:<carrier>±<beat>/<amp>)", raw)
+		}
+		c, err := num(m[1])
+		if err != nil {
+			return spec, err
+		}
+		b, err := num(m[3])
+		if err != nil {
+			return spec, err
+		}
+		a, err := amp(m[4])
+		if err != nil {
+			return spec, err
+		}
+		spec.Kind, spec.Carrier, spec.Beat, spec.Amp = Doppler, c, b, a
+		spec.Sign = 1
+		if m[2] == "-" {
+			spec.Sign = -1
+		}
+		if spec.Depth == 0 {
+			spec.Depth = 15 // cents; a gentle, clearly audible sweep
 		}
 		return spec, nil
 	case strings.HasPrefix(raw, "emdr:"):

@@ -177,3 +177,55 @@ NOW f
 		t.Error("flip render is not deterministic")
 	}
 }
+
+func TestParseDoppler(t *testing.T) {
+	s, err := seq.Parse(`
+d: doppler:250+10/20 rate0.1 depth30
+n: doppler:250+5/20
+z: doppler:250+5/20 depth0
+`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	d := s.Sets["d"].Specs[0]
+	if d.Kind != seq.Doppler || d.Carrier != 250 || d.Beat != 10 || d.Rate != 0.1 || d.Depth != 30 || d.Sign != 1 {
+		t.Errorf("d spec = %+v", d)
+	}
+	n := s.Sets["n"].Specs[0]
+	if n.Rate != 0.05 || n.Depth != 15 {
+		t.Errorf("n spec (want defaults rate 0.05, depth 15) = %+v", n)
+	}
+	z := s.Sets["z"].Specs[0]
+	if z.Depth != 0 {
+		t.Errorf("explicit depth0 must not be overridden, got %g", z.Depth)
+	}
+	// A signed depth is not an attribute token; it fails to parse.
+	if _, err := seq.Parse("d: doppler:250+10/20 depth-5\n"); err == nil {
+		t.Error("depth-5 should fail to parse")
+	}
+}
+
+func TestDopplerPlanRendersSweep(t *testing.T) {
+	// rate 0.5 → swing peaks at t = 0.5 s; depth 600 cents → left tone
+	// (110 Hz base) sweeps to 110·2^0.5 ≈ 155.6 Hz and dwells near it.
+	src := func(depth string) string {
+		return "off: -\nd: doppler:105+10/25 rate0.5 depth" + depth + "\n\nNOW d\n+0:00:02 off\n"
+	}
+	const sr = 8000
+	p0 := planOf(t, src("0"), seq.PlanOpts{})
+	p6 := planOf(t, src("600"), seq.PlanOpts{})
+	x0, x6 := p0.Render(sr), p6.Render(sr)
+	L0, L6 := channel(x0, 0), channel(x6, 0)
+
+	// Window centered on the peak: base 110 Hz is an exact bin here, so the
+	// depth-0 render leaks nothing onto the swept frequency.
+	w0, w6 := windowOf(L0, sr, 0.4, 0.6), windowOf(L6, sr, 0.4, 0.6)
+	g0, g6 := dsp.Goertzel(w0, sr, 153), dsp.Goertzel(w6, sr, 153)
+	if g6 <= 5*g0 {
+		t.Errorf("swept render: 153 Hz magnitude %g should dominate depth-0 %g", g6, g0)
+	}
+	// The sweep passes through the base frequency: energy remains at 110 Hz.
+	if g := dsp.Goertzel(windowOf(L6, sr, 0.9, 1.1), sr, 110); g <= 0 {
+		t.Errorf("base tone missing in swept render: %g", g)
+	}
+}
