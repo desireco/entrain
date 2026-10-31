@@ -1,0 +1,24 @@
+## Pure Theta — 25 minutes
+##
+## Acoustic parameters mirrored from a public curated session library;
+## score re-authored in SBaGen .sbg format.
+## Independent work - not affiliated with or endorsed by any third party.
+## Source templates inlined as plain presets.
+##
+## One band, nothing else: a 250 Hz carrier with theta beats
+## stepping 7 -> 4 Hz. No noise bed. Headphones required.
+
+off: -
+theta-7: 250+7/20
+theta-6: 250+6/20
+theta-5: 250+5/20
+theta-4: 250+4/20
+
+00:00:00 off
+00:00:15 theta-7
+00:05:00 theta-7
+00:10:00 theta-6
+00:15:00 theta-5
+00:20:00 theta-4
+00:24:00 theta-4
+00:25:00 off

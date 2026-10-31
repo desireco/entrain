@@ -1,0 +1,24 @@
+## Pure Beta — 25 minutes
+##
+## Acoustic parameters mirrored from a public curated session library;
+## score re-authored in SBaGen .sbg format.
+## Independent work - not affiliated with or endorsed by any third party.
+## Source templates inlined as plain presets.
+##
+## One band, nothing else: a 250 Hz carrier with beta beats
+## stepping 13 -> 22 Hz. No noise bed. Headphones required.
+
+off: -
+beta-13: 250+13/20
+beta-16: 250+16/20
+beta-19: 250+19/20
+beta-22: 250+22/20
+
+00:00:00 off
+00:00:15 beta-13
+00:05:00 beta-13
+00:10:00 beta-16
+00:15:00 beta-19
+00:20:00 beta-22
+00:24:00 beta-22
+00:25:00 off

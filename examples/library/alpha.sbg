@@ -1,0 +1,24 @@
+## Pure Alpha — 25 minutes
+##
+## Acoustic parameters mirrored from a public curated session library;
+## score re-authored in SBaGen .sbg format.
+## Independent work - not affiliated with or endorsed by any third party.
+## Source templates inlined as plain presets.
+##
+## One band, nothing else: a 250 Hz carrier with alpha beats
+## stepping 12 -> 8 Hz. No noise bed. Headphones required.
+
+off: -
+alpha-12: 250+12/20
+alpha-10: 250+10/20
+alpha-9: 250+9/20
+alpha-8: 250+8/20
+
+00:00:00 off
+00:00:15 alpha-12
+00:05:00 alpha-12
+00:10:00 alpha-10
+00:15:00 alpha-9
+00:20:00 alpha-8
+00:24:00 alpha-8
+00:25:00 off

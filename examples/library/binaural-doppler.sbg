@@ -1,0 +1,30 @@
+## Binaural Doppler — 25 minutes
+##
+## Acoustic parameters mirrored from a public curated session library;
+## score re-authored in SBaGen .sbg format.
+## Independent work - not affiliated with or endorsed by any third party.
+##
+##
+## the reference doppler effect (a slow cyclic detune) has no entrain
+## equivalent yet; it is emulated by drifting the beat a little on
+## each phase change. Entrain glides pitch phase-continuously, so
+## every step is a smooth slide, never a restart.
+##
+## A 250 Hz carrier alternating alpha (10 Hz) and theta (5 Hz)
+## phases, the beat wandering +/-1 Hz as it goes.
+
+off: -
+alpha-a: 250+10/20
+alpha-b: 250+11/20
+theta-a: 250+5/20
+theta-b: 250+4/20
+
+00:00:00 off
+00:00:15 alpha-a
+00:05:00 alpha-b
+00:10:00 theta-a
+00:15:00 alpha-a
+00:20:00 theta-b
+00:22:00 alpha-b
+00:24:00 theta-a
+00:25:00 off

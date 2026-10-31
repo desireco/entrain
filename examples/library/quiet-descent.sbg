@@ -1,0 +1,27 @@
+## Quiet Descent — 25 minutes
+##
+## Acoustic parameters mirrored from a public curated session library;
+## score re-authored in SBaGen .sbg format.
+## Independent work - not affiliated with or endorsed by any third party.
+## Source curve modifiers (ease-in/out) render
+## as entrain's standard linear changeovers.
+##
+## Deep, immersive descent: pink bed swelling 50 -> 65, carrier
+## 250 -> 180 Hz, beats 10.5 -> 4.5 Hz, tones kept very quiet.
+
+off: -
+alpha-preparation: pink/50 250+10.5/10
+alpha-state: pink/55 250+8.5/5
+theta-state-one: pink/60 180+6.5/5
+theta-state-two: pink/65 180+4.5/5
+
+00:00:00 off
+00:00:15 alpha-preparation
+00:01:00 alpha-preparation
+00:05:00 alpha-state
+00:08:00 theta-state-one
+00:13:00 theta-state-one
+00:14:00 theta-state-two
+00:19:00 theta-state-two
+00:24:00 alpha-state
+00:25:00 off

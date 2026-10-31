@@ -1,0 +1,31 @@
+## Alert Flow — 20 minutes
+##
+## Acoustic parameters mirrored from a public curated session library;
+## score re-authored in SBaGen .sbg format.
+## Independent work - not affiliated with or endorsed by any third party.
+##
+##
+## The source uses isochronic tones; entrain has no isochronic voice
+## yet, so the same beat rates (10/14/18/22 Hz) are rendered as
+## binaural pairs over a quiet white bed. Headphones required.
+##
+## Steady climb for work and study: a 250 Hz alpha warm-up, then a
+## 400 Hz carrier rising 14 -> 22 Hz.
+
+off: -
+alpha-preparation: white/10
+alpha-state: white/5 250+10/10
+beta-state: white/5 400+14/10
+peak-one: white/5 400+18/15
+peak-two: white/5 400+22/15
+
+00:00:00 off
+00:00:15 alpha-preparation
+00:01:00 alpha-preparation
+00:05:00 alpha-state
+00:10:00 beta-state
+00:14:00 peak-one
+00:16:00 peak-one
+00:18:00 peak-two
+00:19:30 peak-two
+00:20:00 off

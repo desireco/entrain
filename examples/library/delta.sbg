@@ -1,0 +1,24 @@
+## Pure Delta — 25 minutes
+##
+## Acoustic parameters mirrored from a public curated session library;
+## score re-authored in SBaGen .sbg format.
+## Independent work - not affiliated with or endorsed by any third party.
+## Source templates inlined as plain presets.
+##
+## One band, nothing else: a 250 Hz carrier with delta beats
+## stepping 3 -> 0.5 Hz. No noise bed. Headphones required.
+
+off: -
+delta-3: 250+3/20
+delta-2: 250+2/20
+delta-1: 250+1/20
+delta-half: 250+0.5/20
+
+00:00:00 off
+00:00:15 delta-3
+00:05:00 delta-3
+00:10:00 delta-2
+00:15:00 delta-1
+00:20:00 delta-half
+00:24:00 delta-half
+00:25:00 off

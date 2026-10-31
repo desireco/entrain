@@ -1,0 +1,21 @@
+## Calm State — 15 minutes
+##
+## Acoustic parameters mirrored from a public curated session library;
+## score re-authored in SBaGen .sbg format.
+## Independent work - not affiliated with or endorsed by any third party.
+##
+##
+## Gentle pink bed under a 200 Hz carrier; 10 Hz alpha easing to
+## 8 Hz and back. For stress release and a calm, settled state.
+
+off: -
+alpha-one: pink/50 200+10/20
+alpha-two: pink/70 200+8/15
+
+00:00:00 off
+00:00:15 alpha-one
+00:02:00 alpha-one
+00:06:00 alpha-two
+00:11:00 alpha-two
+00:13:00 alpha-one
+00:15:00 off

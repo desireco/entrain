@@ -1,0 +1,23 @@
+## Neutral Relax — 20 minutes
+##
+## Acoustic parameters mirrored from a public curated session library;
+## score re-authored in SBaGen .sbg format.
+## Independent work - not affiliated with or endorsed by any third party.
+## The source pans its brown-noise bed; entrain
+## beds are wide decorrelated stereo, so the bed plays centered-full.
+##
+## Minimal and low-intensity: brown-noise bed, 250 Hz carrier, beats
+## 10 <-> 5 Hz. For rest, light meditation, quiet background use.
+
+off: -
+alpha: brown/40 250+10/15
+theta: brown/40 250+5/15
+
+00:00:00 off
+00:00:15 alpha
+00:05:00 alpha
+00:10:00 theta
+00:15:00 theta
+00:17:30 alpha
+00:19:30 alpha
+00:20:00 off

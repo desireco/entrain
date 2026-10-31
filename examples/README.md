@@ -11,6 +11,9 @@ under 100. Headphones required for binaural beats.
 | `sleep-delta.sbg` | 3 Hz delta binaural over a brown-noise bed (1 h) |
 | `pink-bed.sbg` | Pink noise alone, half level (1 h) |
 
+A starter library of 11 short curated sessions (15–25 min) —
+see [`library/`](library/).
+
 Render any of them:
 
 ```sh

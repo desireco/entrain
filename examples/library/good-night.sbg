@@ -1,0 +1,26 @@
+## Good Night — 25 minutes
+##
+## Acoustic parameters mirrored from a public curated session library;
+## score re-authored in SBaGen .sbg format.
+## Independent work - not affiliated with or endorsed by any third party.
+##
+##
+## Sleep descent: pink bed swelling 5 -> 25, carriers 220 -> 180 Hz,
+## beats 10 -> 2 Hz. Ends in deep delta. Headphones on, lights out.
+
+off: -
+alpha-one: pink/5 220+10/15
+alpha-two: pink/10 220+8/15
+theta-one: pink/15 180+6/10
+theta-two: pink/20 180+4/10
+delta: pink/25 180+2/5
+
+00:00:00 off
+00:00:15 alpha-one
+00:02:00 alpha-one
+00:05:00 alpha-two
+00:10:00 theta-one
+00:15:00 theta-two
+00:20:00 delta
+00:24:00 delta
+00:25:00 off
