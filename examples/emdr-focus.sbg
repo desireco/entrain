@@ -1,0 +1,15 @@
+## EMDR Focus — 30 minutes
+##
+## EMDR taps mixed with binaural beats and a pink bed (entrain extended
+## syntax): 500 Hz taps alternate ears at 0.8 Hz while a 200 Hz carrier
+## holds a gentle 10 Hz alpha beat under a soft pink bed — three voices
+## summed in one tone-set. Headphones required.
+##
+## extended syntax: entrain
+
+off: -
+focus: emdr:500/25 rate0.8 pink/20 200+10/12
+
+00:00:00 off
+00:00:15 focus
+00:30:00 off

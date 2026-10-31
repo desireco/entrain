@@ -11,10 +11,17 @@ under 100. Headphones required for binaural beats.
 | `sleep-delta.sbg` | 3 Hz delta binaural over a brown-noise bed (1 h) |
 | `pink-bed.sbg` | Pink noise alone, half level (1 h) |
 | `flip-10.sbg` | Hemisphere-flip binaural: 110/100 Hz swinging sides (30 min) |
+| `emdr-taps.sbg` | Bilateral 600 Hz taps L/R at 1 Hz over brown noise (30 min) |
+| `emdr-focus.sbg` | EMDR taps + 10 Hz alpha binaural + pink bed, mixed (30 min) |
 
 `flip-10.sbg` uses entrain's extended `.sbg` syntax (the `flip:` voice,
 `flip:<carrier>±<beat>/<amp> rate<hz>`) — original sbagen cannot parse
 it. Omit `rate` for the default 20-second swing cycle.
+
+The `emdr:` voice speaks the same extended syntax:
+`emdr:<freq>/<amp> rate<hz>` fires soft tone bursts that alternate
+hard left / hard right (one burst per half-cycle; 1 Hz ≈ classic EMDR
+pacing). It mixes freely with beds and binaural pairs in a tone-set.
 
 A starter library of 11 short curated sessions (15–25 min) —
 see [`library/`](library/).

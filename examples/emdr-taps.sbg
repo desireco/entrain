@@ -1,0 +1,15 @@
+## EMDR Taps — 30 minutes
+##
+## Bilateral stimulation (entrain extended syntax): soft 600 Hz tone
+## taps alternating left / right at 1 Hz over a quiet brown-noise bed.
+## Classic EMDR pacing. Headphones required — the taps must land in
+## opposite ears; on speakers they will not pan.
+##
+## extended syntax: entrain
+
+off: -
+taps: emdr:600/30 rate1.0 brown/25
+
+00:00:00 off
+00:00:15 taps
+00:30:00 off
