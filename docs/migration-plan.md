@@ -2,7 +2,7 @@
 
 Status: draft v1 (October 2026). Companion spec: [sequence-format.md](sequence-format.md).
 
-**Naming scheme** — Brand/project: **EntrainSpace**; software/CLI: **Entrain** (binary `entrain`, from *brainwave entrainment*; `entrain.app` is an unrelated same-space web app, hence the umbrella brand). Sequence files: plain `.toml` — informally called "trains" (`entrain render sleep.toml`). Domains (Oct 2026): `entrainspace.io` available (confirmed); `.com`/`.app`/`.dev` taken. Repo: public at `github.com/desireco/entrain` (MIT). Local workspace `~/Work/entrain` holds the vendored `sbagen/` reference and stays out of git; the repo root is the `space/` subfolder.
+**Naming scheme** — Brand/project: **EntrainSpace**; software/CLI: **Entrain** (binary `entrain`, from *brainwave entrainment*; `entrain.app` is an unrelated same-space web app, hence the umbrella brand). Sequence files: TOML "trains" — native file extension `.entrain` (`entrain render sleep.entrain`; plain `.toml` also accepted), decided Oct 2026. Domains (Oct 2026): `entrainspace.io` available (confirmed); `.com`/`.app`/`.dev` taken. Repo: public at `github.com/desireco/entrain` (MIT). Local workspace `~/Work/entrain` holds the vendored `sbagen/` reference and stays out of git; the repo root is the `space/` subfolder.
 
 ## Goal
 
