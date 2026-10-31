@@ -10,12 +10,11 @@ substitution is used and noted in the session header:
 
 - isochronic tones → binaural pairs at the same beat rates (`alert-flow`)
 - panned noise → wide decorrelated stereo beds (`neutral-relax`)
-- `smooth N` / ease-in/out curve shapes → entrain's standard 30 s
-  linear changeovers
 - templates → values inlined
 
-Doppler is native since entrain gained the `doppler:` voice:
-`binaural-doppler` uses it directly (no substitution).
+ease-out/ease-in transitions and the `doppler:` effect are native
+since entrain gained extended syntax (`quiet-descent`,
+`binaural-doppler` use them directly).
 
 | Session | Length | What it is |
 |---|---|---|

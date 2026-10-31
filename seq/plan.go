@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/desireco/entrain/internal/dsp"
@@ -262,6 +264,13 @@ func buildEnvelopes(plan *Plan, events []Event) {
 		}
 	}
 
+	boundaryFade := func(ev Event) time.Duration {
+		if ev.Fade >= 0 {
+			return ev.Fade
+		}
+		return F
+	}
+
 	for _, k := range order {
 		c := comps[k]
 
@@ -269,8 +278,8 @@ func buildEnvelopes(plan *Plan, events []Event) {
 		// first segment so it cannot collide with the first fade-out).
 		a0, _ := ampOf(events[0], k)
 		if a0 > 0 {
-			fIn := minDur(F, segLen(0)/2)
-			c.env = append(c.env, BP{plan.Start, 0}, BP{plan.Start + fIn, a0})
+			fIn := minDur(boundaryFade(events[0]), segLen(0)/2)
+			c.env = ramp(c.env, plan.Start, 0, a0, fIn, events[0].Curve)
 		}
 
 		for i := 0; i+1 < len(events); i++ {
@@ -279,15 +288,17 @@ func buildEnvelopes(plan *Plan, events []Event) {
 			b, _ := ampOf(events[i+1], k)
 			// Each fade clamps to half its segment, so a segment shorter
 			// than 2×F peaks mid-segment instead of the fades colliding.
-			fOut := minDur(F, (T-segStart(i))/2)
-			fIn := minDur(F, segLen(i+1)/2)
+			fb := boundaryFade(events[i+1])
+			fOut := minDur(fb, (T-segStart(i))/2)
+			fIn := minDur(fb, segLen(i+1)/2)
+			cv := events[i+1].Curve
 			switch {
 			case a > 0 && b > 0: // continuity: amplitude glides across the window
-				c.env = append(c.env, BP{T - fOut, a}, BP{T + fIn, b})
+				c.env = ramp(c.env, T-fOut, a, b, fOut+fIn, cv)
 			case a > 0: // fades out before the boundary
-				c.env = append(c.env, BP{T - fOut, a}, BP{T, 0})
+				c.env = ramp(c.env, T-fOut, a, 0, fOut, cv)
 			case b > 0: // fades in after the boundary
-				c.env = append(c.env, BP{T, 0}, BP{T + fIn, b})
+				c.env = ramp(c.env, T, 0, b, fIn, cv)
 			}
 		}
 
@@ -298,6 +309,26 @@ func buildEnvelopes(plan *Plan, events []Event) {
 		}
 		plan.Voices = append(plan.Voices, vp)
 	}
+}
+
+// ramp appends breakpoints for a fade from `from` to `to` starting at t and
+// lasting dur. Linear fades are a single segment; eased fades are drawn as
+// 12 chords (chord error <1% of the ramp — inaudible) so envelopes stay
+// piecewise-linear for the renderer.
+func ramp(env []BP, t time.Duration, from, to float64, dur time.Duration, curve byte) []BP {
+	if dur <= 0 || curve == 0 || from == to {
+		return append(env, BP{t, from}, BP{t + dur, to})
+	}
+	const pieces = 12
+	for k := 0; k <= pieces; k++ {
+		x := float64(k) / pieces
+		y := x * x
+		if curve == 'o' {
+			y = 1 - (1-x)*(1-x)
+		}
+		env = append(env, BP{t + time.Duration(float64(dur)*x), from + (to-from)*y})
+	}
+	return env
 }
 
 // normalizeEnv sorts breakpoints, drops redundant ones at equal times, and
@@ -393,6 +424,19 @@ func minDur(a, b time.Duration) time.Duration {
 		return a
 	}
 	return b
+}
+
+// parseFadeDur parses a fade length: plain seconds ("20", "1.5") or a
+// clock form ("0:10", "1:00:00").
+func parseFadeDur(s string) (time.Duration, error) {
+	if strings.Contains(s, ":") {
+		return ParseLength(s)
+	}
+	sec, err := strconv.ParseFloat(s, 64)
+	if err != nil || sec < 0 {
+		return 0, fmt.Errorf("bad fade seconds %q", s)
+	}
+	return time.Duration(sec * float64(time.Second)), nil
 }
 
 func parseMillis(s string) (time.Duration, error) {

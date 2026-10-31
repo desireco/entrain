@@ -63,6 +63,8 @@ type Event struct {
 	Set             string
 	FadeIn, FadeOut byte // fade chars: in '<','-','=' ; out '>','-','=' — default '-','-'
 	Slide           bool // '->' present
+	Fade            time.Duration // entrain extension: changeover length at this boundary (-1 = default)
+	Curve           byte          // entrain extension: 'i' = ease-in, 'o' = ease-out, 0 = linear
 	Line            int
 }
 
@@ -259,15 +261,39 @@ func (p *parser) expand(out *[]Event, ev Event, depth int) error {
 	return fmt.Errorf("line %d: unknown tone-set or block %q", ev.Line, ev.Set)
 }
 
-// timelineLine parses `<time-spec> [<fade>] <name> [->]`. Inside block
-// definitions the time-spec must be a pure relative offset.
+// timelineLine parses `<time-spec> [<fade>] <name> [->] [fade<dur>]
+// [ease-in|ease-out]`. Inside block definitions the time-spec must be a
+// pure relative offset. The trailing fade/ease tokens are entrain
+// extensions; sbagen-valid lines never carry tokens after the name, so
+// they are never consumed from an old file.
 func (p *parser) timelineLine(line string, inBlock bool) (Event, error) {
-	ev := Event{Line: p.line, FadeIn: '-', FadeOut: '-'}
+	ev := Event{Line: p.line, FadeIn: '-', FadeOut: '-', Fade: -1}
 
 	fields := strings.Fields(line)
 	if fields[len(fields)-1] == "->" {
 		ev.Slide = true
 		fields = fields[:len(fields)-1]
+	}
+	for len(fields) > 0 {
+		last := fields[len(fields)-1]
+		if last == "ease-in" || last == "ease-out" {
+			ev.Curve = 'i'
+			if last == "ease-out" {
+				ev.Curve = 'o'
+			}
+			fields = fields[:len(fields)-1]
+			continue
+		}
+		if m := fadeAttr.FindStringSubmatch(last); m != nil {
+			d, err := parseFadeDur(m[1])
+			if err != nil {
+				return ev, fmt.Errorf("line %d: bad fade length %q", p.line, last)
+			}
+			ev.Fade = d
+			fields = fields[:len(fields)-1]
+			continue
+		}
+		break
 	}
 	if len(fields) < 2 || len(fields) > 3 {
 		return ev, fmt.Errorf("line %d: expected `<time-spec> [<fade>] <tone-set>`, got %q", p.line, line)
@@ -436,6 +462,7 @@ var (
 	spin     = regexp.MustCompile(`^spin:([0-9]*\.?[0-9]+)\+([0-9]*\.?[0-9]+)/([0-9]*\.?[0-9]+)$`)
 	wave     = regexp.MustCompile(`^wave[0-9]+:.+$`)
 	flipRe   = regexp.MustCompile(`^flip:([0-9]*\.?[0-9]+)([+-])([0-9]*\.?[0-9]+)/([0-9]*\.?[0-9]+)$`)
+	fadeAttr = regexp.MustCompile(`^fade([0-9:.]+)$`)
 	emdrRe   = regexp.MustCompile(`^emdr:([0-9]*\.?[0-9]+)/([0-9]*\.?[0-9]+)$`)
 	dopplRe  = regexp.MustCompile(`^doppler:([0-9]*\.?[0-9]+)([+-])([0-9]*\.?[0-9]+)/([0-9]*\.?[0-9]+)$`)
 	rateAttr = regexp.MustCompile(`^(rate|depth)([0-9]*\.?[0-9]+)$`)
