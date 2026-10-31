@@ -250,7 +250,8 @@ func buildEnvelopes(plan *Plan, events []Event) {
 			continue
 		}
 		for _, sp := range ts.Specs {
-			if sp.Kind != White && sp.Kind != Pink && sp.Kind != Brown && sp.Kind != Binaural && sp.Kind != Mix {
+			if sp.Kind != White && sp.Kind != Pink && sp.Kind != Brown && sp.Kind != Binaural && sp.Kind != Mix &&
+				sp.Kind != Flip && sp.Kind != EMDR {
 				continue
 			}
 			k := keyOf(sp)
@@ -323,6 +324,13 @@ func normalizeEnv(env []BP, start, end time.Duration) []BP {
 	return out
 }
 
+func defaultRate(kind ToneKind) float64 {
+	if kind == EMDR {
+		return 1.0 // EMDR pacing
+	}
+	return 0.05 // flip: one full L→R→L swing per 20 s
+}
+
 // keyOf identifies a component across tone-sets: pink noise, or a
 // binaural/sine voice by its per-ear frequencies (so '+'/'-' signs with
 // the same carrier and beat are different components, and a beat change
@@ -337,6 +345,11 @@ func keyOf(sp ToneSpec) string {
 		return "brown"
 	case Mix:
 		return "mix"
+	case Flip:
+		l, r := EarFreqs(sp)
+		return fmt.Sprintf("flip:%.6g/%.6g@%.4g", l, r, sp.Rate)
+	case EMDR:
+		return fmt.Sprintf("emdr:%.6g@%.4g", sp.Carrier, sp.Rate)
 	}
 	l, r := EarFreqs(sp)
 	return fmt.Sprintf("bin:%.6g/%.6g", l, r)

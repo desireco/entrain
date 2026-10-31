@@ -1,0 +1,18 @@
+## Flip Ten — 30 minutes
+##
+## Hemisphere-flip binaural (entrain extended syntax): a 105 Hz carrier
+## beat at 10 Hz — 110 Hz in the left ear, 100 Hz in the right — with the
+## pair swinging between the ears on a slow 20-second pendulum (rate
+## 0.05 Hz, the default). Mid-swing each ear carries both tones at equal
+## power; the beat percept fades and re-forms mirrored on every flip.
+##
+## Headphones required. Original sbagen cannot parse this file.
+##
+## extended syntax: entrain
+
+off: -
+flip-ten: flip:105+10/25
+
+00:00:00 off
+00:00:15 flip-ten
+00:30:00 off
