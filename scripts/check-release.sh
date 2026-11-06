@@ -10,7 +10,7 @@ archive=$(realpath "$2")
 tmp=$(mktemp -d)
 trap 'rm -rf -- "$tmp"' EXIT
 (cd "$(dirname "$archive")" && sha256sum -c "$(basename "$archive").sha256")
-tar -C "$tmp" -xzf "$archive"
+tar --no-same-owner -C "$tmp" -xzf "$archive"
 cd "$tmp/entrain-linux-amd64"
 test "$(./entrain version)" = "entrain $tag"
 test "$(./beatscope --version)" = "beatscope $tag"
