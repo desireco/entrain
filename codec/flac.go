@@ -22,6 +22,10 @@ func WriteFlac(w io.WriteSeeker, sampleRate, bits int, x []float64) error {
 	if len(x)%2 != 0 {
 		return fmt.Errorf("codec: interleaved stereo buffer has odd length %d", len(x))
 	}
+	return writeFlac(w, sampleRate, bits, fromSamples(x))
+}
+
+func writeFlac(w io.WriteSeeker, sampleRate, bits int, pcm StereoPCM) error {
 	if bits != 16 && bits != 24 {
 		return fmt.Errorf("codec: flac: unsupported bit depth %d (16 or 24)", bits)
 	}
@@ -36,14 +40,13 @@ func WriteFlac(w io.WriteSeeker, sampleRate, bits int, x []float64) error {
 	}
 
 	const blockSize = 4096
-	n := len(x) / 2
-	for off := 0; off < n; off += blockSize {
-		m := min(blockSize, n-off)
+	for remaining := pcm.Frames; remaining > 0; remaining -= blockSize {
+		m := int(min(blockSize, remaining))
 		l := make([]int32, m)
 		r := make([]int32, m)
 		for i := range m {
-			l[i] = q.sample(x[2*(off+i)])
-			r[i] = q.sample(x[2*(off+i)+1])
+			left, right := pcm.Next()
+			l[i], r[i] = q.sample(left), q.sample(right)
 		}
 		f := &frame.Frame{
 			Header: frame.Header{

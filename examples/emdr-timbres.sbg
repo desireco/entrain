@@ -1,0 +1,17 @@
+## Bilateral cue audition — 45 seconds
+## extended syntax: entrain
+## The same pitch control, level and left/right timing for each sound.
+## Listen for the tone, then the bell, then the soft noise burst.
+## Copy any one of these voice lines into another session.
+
+-changeover 1
+off: -
+tone: emdr:420/18 rate0.8 shape=tone
+bell: emdr:420/18 rate0.8 shape=bell
+noise: emdr:420/18 rate0.8 shape=noise
+
+00:00:00 off
+00:00:01 tone
+00:00:15 bell
+00:00:30 noise
+00:00:45 off

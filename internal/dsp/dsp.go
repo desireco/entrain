@@ -102,7 +102,7 @@ func readWav(b []byte, allowedBits ...int) (sr int, x []float64, bits int, err e
 	}
 	var data []byte
 	bits = -1
-	channels, sampleRate := 0, 0
+	channels, sampleRate, blockAlign := 0, 0, 0
 	pos := 12
 	for pos+8 <= len(b) {
 		id := string(b[pos : pos+4])
@@ -114,11 +114,17 @@ func readWav(b []byte, allowedBits ...int) (sr int, x []float64, bits int, err e
 				return 0, nil, 0, errors.New("dsp: short fmt chunk")
 			}
 			format := binary.LittleEndian.Uint16(body[0:2])
-			if format != 1 {
+			if format == 0xfffe {
+				// FFmpeg and other encoders wrap 24-bit PCM in WAVEFORMATEXTENSIBLE.
+				if err := checkExtensiblePCM(body); err != nil {
+					return 0, nil, 0, err
+				}
+			} else if format != 1 {
 				return 0, nil, 0, fmt.Errorf("dsp: unsupported WAV format %d (want PCM)", format)
 			}
 			channels = int(binary.LittleEndian.Uint16(body[2:4]))
 			sampleRate = int(binary.LittleEndian.Uint32(body[4:8]))
+			blockAlign = int(binary.LittleEndian.Uint16(body[12:14]))
 			bits = int(binary.LittleEndian.Uint16(body[14:16]))
 		case "data":
 			data = body
@@ -133,6 +139,13 @@ func readWav(b []byte, allowedBits ...int) (sr int, x []float64, bits int, err e
 	}
 	if channels != 2 || !okBits || data == nil {
 		return 0, nil, 0, fmt.Errorf("dsp: not a supported PCM WAV (channels=%d bits=%d data=%v)", channels, bits, data != nil)
+	}
+
+	if sampleRate <= 0 || blockAlign != channels*(bits/8) {
+		return 0, nil, 0, fmt.Errorf("dsp: invalid WAV sample rate %d or block alignment %d", sampleRate, blockAlign)
+	}
+	if len(data)%blockAlign != 0 {
+		return 0, nil, 0, errors.New("dsp: incomplete stereo PCM frame")
 	}
 
 	switch bits {
@@ -152,4 +165,27 @@ func readWav(b []byte, allowedBits ...int) (sr int, x []float64, bits int, err e
 		}
 	}
 	return sampleRate, x, bits, nil
+}
+
+// checkExtensiblePCM accepts only integer PCM in an unspecified or standard
+// front-left/front-right channel layout. Sample widths are checked by readWav.
+func checkExtensiblePCM(body []byte) error {
+	if len(body) < 40 {
+		return errors.New("dsp: short extensible WAV format")
+	}
+	ext := int(binary.LittleEndian.Uint16(body[16:18]))
+	if ext < 22 || ext > len(body)-18 {
+		return errors.New("dsp: invalid extensible WAV format length")
+	}
+	const pcmGUID = "\x01\x00\x00\x00\x00\x00\x10\x00\x80\x00\x00\xaa\x00\x38\x9b\x71"
+	if string(body[24:40]) != pcmGUID {
+		return errors.New("dsp: unsupported extensible WAV subtype (want PCM)")
+	}
+	if binary.LittleEndian.Uint16(body[18:20]) > binary.LittleEndian.Uint16(body[14:16]) {
+		return errors.New("dsp: valid bits exceed WAV sample width")
+	}
+	if mask := binary.LittleEndian.Uint32(body[20:24]); mask != 0 && mask != 3 {
+		return errors.New("dsp: unsupported WAV stereo channel layout")
+	}
+	return nil
 }

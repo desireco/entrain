@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/desireco/entrain/internal/dsp"
+	"github.com/desireco/entrain/synth"
 )
 
 // DefaultCrossfade is sbagen's default: fades happen within 30 s either
@@ -395,7 +396,11 @@ func keyOf(sp ToneSpec) string {
 		l, r := EarFreqs(sp)
 		return fmt.Sprintf("dop:%.6g/%.6g@%.4g^%.4g", l, r, sp.Rate, sp.Depth)
 	case EMDR:
-		return fmt.Sprintf("emdr:%.6g@%.4g", sp.Carrier, sp.Rate)
+		key := fmt.Sprintf("emdr:%.6g@%.4g", sp.Carrier, sp.Rate)
+		if sp.Shape != "" && sp.Shape != synth.EMDRTone {
+			key += "/" + string(sp.Shape)
+		}
+		return key
 	}
 	l, r := EarFreqs(sp)
 	return fmt.Sprintf("bin:%.6g/%.6g", l, r)

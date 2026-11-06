@@ -171,3 +171,78 @@ func TestUnsupportedRate(t *testing.T) {
 		t.Fatalf("code=%d stderr=%q", code, errOut)
 	}
 }
+
+func TestProtectSessionSourceAndAliases(t *testing.T) {
+	t.Chdir(t.TempDir())
+	for _, tc := range []struct{ path, source string }{
+		{"test.sbg", "a: pink/20\noff: -\nNOW a\n+0:00:01 off\n"},
+		{"test.entrain", nativeSource},
+	} {
+		if err := os.WriteFile(tc.path, []byte(tc.source), 0600); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.Symlink(tc.path, "symlink.wav"); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.Link(tc.path, "hardlink.wav"); err != nil {
+			t.Fatal(err)
+		}
+		for _, dst := range []string{tc.path, "symlink.wav", "hardlink.wav"} {
+			for _, dry := range []bool{true, false} {
+				args := []string{tc.path, "-o", dst}
+				if dry {
+					args = append(args, "--dry-run")
+				}
+				code, _, stderr := runCLI(t, args...)
+				if code == 0 || !strings.Contains(stderr, "separate from the source") {
+					t.Fatalf("%v: exit %d, %s", args, code, stderr)
+				}
+				b, err := os.ReadFile(tc.path)
+				if err != nil || string(b) != tc.source {
+					t.Fatalf("source changed: %v", err)
+				}
+			}
+		}
+		for _, name := range []string{"symlink.wav", "hardlink.wav"} {
+			if err := os.Remove(name); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	// Even a derived output filename can already point at the source.
+	if err := os.Symlink("test.sbg", "test.wav"); err != nil {
+		t.Fatal(err)
+	}
+	code, _, stderr := runCLI(t, "test.sbg")
+	if code == 0 || !strings.Contains(stderr, "separate from the source") {
+		t.Fatalf("implicit output alias: %s", stderr)
+	}
+}
+
+func TestInvalidMP3BitrateMatchesDryRun(t *testing.T) {
+	t.Chdir(t.TempDir())
+	if err := os.WriteFile("test.sbg", []byte("a: pink/20\noff: -\nNOW a\n+0:00:01 off\n"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile("test.entrain", []byte(nativeSource), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile("existing.mp3", []byte("original destination"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	for _, args := range [][]string{
+		{"mix", "pink", "-f", "mp3", "-q", "7", "-o", "existing.mp3"},
+		{"test.entrain", "-q", "7", "-o", "existing.mp3"},
+		{"test.sbg", "-f", "mp3", "-q", "7", "-o", "existing.mp3"},
+	} {
+		dry, _, why := runCLI(t, append(append([]string{}, args...), "--dry-run")...)
+		code, _, stderr := runCLI(t, args...)
+		if code == 0 || code != dry || stderr != why || !strings.Contains(why, "bitrate") {
+			t.Fatalf("%v: dry %d %q, render %d %q", args, dry, why, code, stderr)
+		}
+		b, err := os.ReadFile("existing.mp3")
+		if err != nil || string(b) != "original destination" {
+			t.Fatalf("invalid bitrate modified destination: %v", err)
+		}
+	}
+}

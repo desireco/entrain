@@ -14,10 +14,11 @@ import (
 	"time"
 
 	"github.com/desireco/entrain/codec"
+	"github.com/desireco/entrain/internal/buildversion"
 	"github.com/desireco/entrain/noise"
 )
 
-var version = "0.0.0-dev"
+var version string
 
 const usage = `noisemaker — standalone noise generator (EntrainSpace)
 
@@ -52,6 +53,10 @@ func main() {
 }
 
 func run(args []string, stdout, stderr io.Writer) int {
+	if len(args) == 1 && args[0] == "--version" {
+		fmt.Fprintln(stdout, "noisemaker", buildversion.Resolve(version))
+		return 0
+	}
 	fs := flag.NewFlagSet("noisemaker", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	outPath := fs.String("o", "", "output path")

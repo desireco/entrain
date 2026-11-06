@@ -142,3 +142,21 @@ func TestMp3Deterministic(t *testing.T) {
 		t.Fatal("same input encoded to different bytes")
 	}
 }
+
+func TestSubFrameMp3HasTwoDecodableFrames(t *testing.T) {
+	b := mp3Bytes(t, make([]float64, 88), 320) // 1 ms
+	first, ok := parseMp3Header(b)
+	if !ok {
+		t.Fatal("missing first MP3 frame")
+	}
+	size := 144000 * first.bitrateKbps / first.sampleRate
+	if first.padding {
+		size++
+	}
+	if len(b) <= size {
+		t.Fatal("a single frame cannot be auto-detected by common players")
+	}
+	if _, ok := parseMp3Header(b[size:]); !ok {
+		t.Fatal("missing second MP3 frame")
+	}
+}

@@ -30,20 +30,14 @@ func WriteMp3(w io.Writer, sampleRate, bitrate int, x []float64) error {
 	if len(x)%2 != 0 {
 		return fmt.Errorf("codec: interleaved stereo buffer has odd length %d", len(x))
 	}
-	switch sampleRate {
-	case 32000, 44100, 48000: // MPEG-1 only: the bitrate table below is MPEG-1's
-	default:
-		return fmt.Errorf("codec: mp3: sample rate %d not supported (32000/44100/48000)", sampleRate)
-	}
-	if _, err := mp3.CheckConfig(sampleRate, bitrate); err != nil {
-		return fmt.Errorf("codec: mp3: sample rate %d / bitrate %d: %w", sampleRate, bitrate, err)
+	return writeMp3(w, sampleRate, bitrate, fromSamples(x))
+}
+
+func writeMp3(w io.Writer, sampleRate, bitrate int, pcm StereoPCM) error {
+	if err := ValidateMp3(sampleRate, bitrate); err != nil {
+		return err
 	}
 	q := newQuantizer(16) // MP3's internal fixed point is depth-independent
-	s16 := make([]int16, len(x))
-	for i, s := range x {
-		s16[i] = int16(q.sample(s * shineGainComp))
-	}
-
 	enc := mp3.NewEncoder(sampleRate, 2)
 	if err := setBitrate(enc, sampleRate, bitrate); err != nil {
 		return err
@@ -53,12 +47,41 @@ func WriteMp3(w io.Writer, sampleRate, bitrate int, x []float64) error {
 	// channel, interleaved. (Encoder.Write's own chunking splits stereo
 	// data incorrectly, dropping every other frame's worth of samples.)
 	const samplesPerChannel = 2 * mp3.GRANULE_SIZE // MPEG-1: 2 granules × 576
-	for off := 0; off < len(s16); off += 2 * samplesPerChannel {
-		end := min(off+2*samplesPerChannel, len(s16))
-		data, n := enc.EncodeBufferInterleaved(s16[off:end])
+	s16 := make([]int16, 2*samplesPerChannel)
+	// Common decoders require two consecutive MPEG headers for detection.
+	// Pad very short files with a silent frame after their source audio.
+	outputFrames := pcm.Frames
+	if pcm.Frames > 0 && pcm.Frames <= samplesPerChannel {
+		outputFrames = 2 * samplesPerChannel
+	}
+	for off := int64(0); off < outputFrames; off += samplesPerChannel {
+		count := int(min(samplesPerChannel, max(0, pcm.Frames-off)))
+		for i := range count {
+			l, r := pcm.Next()
+			s16[2*i], s16[2*i+1] = int16(q.sample(l*shineGainComp)), int16(q.sample(r*shineGainComp))
+		}
+		clear(s16[2*count:])
+		data, n := enc.EncodeBufferInterleaved(s16)
 		if _, err := w.Write(data[:n]); err != nil {
 			return fmt.Errorf("codec: mp3 write: %w", err)
 		}
+	}
+	return nil
+}
+
+// ValidateMp3 checks the settings required by this encoder without creating
+// an output stream. The CLI runs the same check for dry runs and renders.
+func ValidateMp3(sampleRate, bitrate int) error {
+	switch sampleRate {
+	case 32000, 44100, 48000: // MPEG-1 only: the bitrate table below is MPEG-1's
+	default:
+		return fmt.Errorf("codec: mp3: sample rate %d not supported (32000/44100/48000)", sampleRate)
+	}
+	if _, err := mp3.CheckConfig(sampleRate, bitrate); err != nil {
+		return fmt.Errorf("codec: mp3: sample rate %d / bitrate %d: %w", sampleRate, bitrate, err)
+	}
+	if bitrate == 0 {
+		return fmt.Errorf("codec: mp3: unsupported bitrate %d (want MPEG-1 Layer III: 32–320)", bitrate)
 	}
 	return nil
 }

@@ -1,0 +1,8 @@
+## Six-minute stereo background. render.sh creates the soundtrack in a
+## temporary directory and applies this entrance and exit to all colors.
+## extended syntax: entrain
+-m bed.wav
+background: mix/100
+off: -
+00:00:00 background fade1.5 ease-out
+00:06:00 off fade6 ease-in

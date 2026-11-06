@@ -13,11 +13,12 @@ import (
 	"strings"
 
 	"github.com/desireco/entrain/beatscope"
+	"github.com/desireco/entrain/internal/buildversion"
 	"github.com/desireco/entrain/internal/dsp"
 	"github.com/mewkiz/flac"
 )
 
-var version = "0.0.0-dev"
+var version string
 
 const usage = `beatscope — detect binaural beats in audio (EntrainSpace)
 
@@ -52,7 +53,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 			fmt.Fprintln(stdout, usage)
 			return 0
 		case a == "--version":
-			fmt.Fprintln(stdout, "beatscope", version)
+			fmt.Fprintln(stdout, "beatscope", buildversion.Resolve(version))
 			return 0
 		case strings.HasPrefix(a, "--min-confidence="):
 			if _, err := fmt.Sscanf(strings.TrimPrefix(a, "--min-confidence="), "%g", &minConf); err != nil {

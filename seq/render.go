@@ -40,7 +40,7 @@ func (p *Plan) Render(rate int) []float64 {
 			l, r := EarFreqs(vp.Spec)
 			v = synth.NewDopplerBinaural(sr, l, r, vp.Spec.Rate, vp.Spec.Depth)
 		case EMDR:
-			v = synth.NewEMDR(sr, vp.Spec.Carrier, vp.Spec.Rate)
+			v = synth.NewEMDRWithShape(sr, vp.Spec.Carrier, vp.Spec.Rate, vp.Spec.Shape)
 		case Mix:
 			v = newBedPlayer(vp.Bed, vp.BedRate, rate)
 		default:
@@ -106,7 +106,7 @@ func keySeed(key string) uint64 {
 // frames of each cycle the previous cycle's tail crossfades out under the
 // head with equal-power curves (the tail and head are uncorrelated
 // material from the same bed). If the bed's rate differs from the render
-// rate it is linearly resampled once up front (fine for noise/music beds).
+// rate it is resampled before the loop period and its fade are calculated.
 type bedPlayer struct {
 	x     []float64 // interleaved
 	fade  int       // wrap crossfade length in frames
@@ -115,24 +115,12 @@ type bedPlayer struct {
 }
 
 func newBedPlayer(bed []float64, bedRate, renderRate int) *bedPlayer {
-	if len(bed) == 0 {
+	if len(bed) < 2 {
 		return &bedPlayer{}
 	}
 	x := bed
 	if bedRate != renderRate && bedRate > 0 {
-		n := len(bed) * renderRate / bedRate
-		rs := make([]float64, n&^1) // even length (stereo)
-		for i := range rs {
-			pos := float64(i) * float64(bedRate) / float64(renderRate)
-			j := int(pos)
-			frac := pos - float64(j)
-			if j+1 >= len(bed) {
-				rs[i] = bed[j%len(bed)]
-				continue
-			}
-			rs[i] = bed[j]*(1-frac) + bed[j+1]*frac
-		}
-		x = rs
+		x = resampleBed(bed, bedRate, renderRate)
 	}
 	frames := len(x) / 2
 	fade := renderRate / 40 // 25 ms
@@ -152,7 +140,7 @@ func (b *bedPlayer) period() int { return len(b.x)/2 - b.fade }
 // Next returns the next bed frame, crossfading the wrap point.
 func (b *bedPlayer) Next() (l, r float64) {
 	frames := len(b.x) / 2
-	if frames < 2 {
+	if frames == 0 {
 		return 0, 0
 	}
 	f := b.i
