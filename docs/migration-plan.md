@@ -60,7 +60,7 @@ sequence (TOML) → synth (osc/noise/envelope) → mixer (float64) → encoder �
 ### Phase 4 — CLI polish + behavioral validation
 - Flags: sample rate, bit depth, output format, output path; sensible errors; docs.
 - Validation: comparable sequences rendered by both engines, compare spectral content perceptually/numerically.
-- Exit: usable v0.1 tagged, MIT license in place.
+- Exit: usable v0.1 tagged (license already in place since Phase 0).
 
 ### Phase 5 — Later / optional
 - TOML sequence format ("trains", [sequence-format.md](sequence-format.md)) as the native authoring format; Opus/AAC outputs, voice types beyond binaural/noise (bell, spin, EMDR bilateral, ethereal textures — from public techniques only), background audio mixing (`-m` mixfiles), live playback, drift/slides (`->`, `slide_to`), randomized variation, WASM/web player.
