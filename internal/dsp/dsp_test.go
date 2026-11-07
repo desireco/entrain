@@ -77,3 +77,48 @@ func TestReadWav16(t *testing.T) {
 		t.Fatal("garbage input accepted")
 	}
 }
+
+func TestExtensiblePCM(t *testing.T) {
+	// Stereo 48 kHz, 24-bit PCM. Each channel has one sample, +0.5 and -0.5.
+	wav := []byte{
+		'R', 'I', 'F', 'F', 66, 0, 0, 0, 'W', 'A', 'V', 'E',
+		'f', 'm', 't', ' ', 40, 0, 0, 0, 0xfe, 0xff, 2, 0,
+		0x80, 0xbb, 0, 0, 0, 0x65, 4, 0, 6, 0, 24, 0,
+		22, 0, 24, 0, 3, 0, 0, 0,
+		1, 0, 0, 0, 0, 0, 0x10, 0, 0x80, 0, 0, 0xaa, 0, 0x38, 0x9b, 0x71,
+		'd', 'a', 't', 'a', 6, 0, 0, 0, 0, 0, 0x40, 0, 0, 0xc0,
+	}
+	rate, x, bits, err := dsp.ReadWav(wav)
+	if err != nil || rate != 48000 || bits != 24 || len(x) != 2 || x[0] != 0.5 || x[1] != -0.5 {
+		t.Fatalf("decoded rate=%d bits=%d x=%v err=%v", rate, bits, x, err)
+	}
+	zeroRate := append([]byte(nil), wav...)
+	clear(zeroRate[24:28])
+	if _, _, _, err := dsp.ReadWav(zeroRate); err == nil {
+		t.Fatal("zero sample rate accepted")
+	}
+	for _, tc := range []struct {
+		name   string
+		offset int
+		value  byte
+	}{
+		{"short fmt", 16, 38},
+		{"short extension", 36, 20},
+		{"overlong extension", 36, 24},
+		{"float subtype", 44, 3},
+		{"unrelated GUID", 59, 0},
+		{"invalid valid bits", 38, 25},
+		{"surround channel pair", 40, 12},
+		{"zero block alignment", 32, 0},
+		{"wrong block alignment", 32, 4},
+		{"incomplete data frame", 64, 3},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			b := append([]byte(nil), wav...)
+			b[tc.offset] = tc.value
+			if _, _, _, err := dsp.ReadWav(b); err == nil {
+				t.Fatal("malformed or unsupported WAV accepted")
+			}
+		})
+	}
+}
