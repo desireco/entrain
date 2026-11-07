@@ -615,7 +615,7 @@
           'fade_in = "' + time(section.fadeIn) + '"', 'fade_out = "' + time(section.fadeOut) + '"');
       });
     } else if (cue !== 'off' && cue !== 'sections') lines.push('cue = "' + cue + '"', 'cue_volume_percent = ' + cueVolume, 'cue_interval_ms = ' + cueInterval);
-    $('#mix-source').rows = Math.min(18, lines.length + 1);
+    $('#mix-source').rows = Math.min(creatorPage ? 24 : 18, lines.length + 1);
     sessionDocument.update(valid ? lines.join('\n') + '\n' : '', valid);
     $('#source-name').textContent = filename;
     $('#mix-command').textContent = sessionDocument.draft ? './entrain render ' + filename :
@@ -645,6 +645,7 @@
       : 'While you audition this binaural preset, the editor keeps your ' + BACKGROUNDS[lastBackground].toLowerCase() + ' score. Apply the score to audition it.';
     $('#excerpt-panel').hidden = !background;
     $('#seed-field').hidden = !background || !generatedBeds.has(current);
+    if (creatorPage && !$('#seed-field').hidden) $('#seed-field').open = true;
     $('#section-editor').hidden = !background || cue !== 'sections';
     $('#duration-field').hidden = !background;
     $('#cue-shape').disabled = !background;
