@@ -40,9 +40,9 @@ def render(page):
     content = (PAGES / (partial + ".html")).read_text()
     if builder:
         creator = page == "session-creator"
-        intro = ("Choose a sound, edit its score, and download the .entrain file to render with the CLI."
+        intro = ("Choose a sound, shape the cue sections, and download the .entrain file to render with the CLI."
                  if creator else 'Audition the sounds of the Entrain CLI, or <a href="session-creator/" '
-                 'class="guide-link">create a session</a> to render offline.')
+                 'class="guide-link">open the Session Creator</a> to build a render offline.')
         view = {"BUILDER_NAME": NAV[page], "CREATOR": str(creator).lower(),
                 "BUILDER_TITLE": "Create a session." if creator else "Find your <em>background.</em>",
                 "BUILDER_INTRO": intro}
