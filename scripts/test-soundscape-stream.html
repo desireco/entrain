@@ -1,0 +1,108 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Soundscape browser stream check</title>
+<button id="run">Run silent stream check</button>
+<pre id="result">Serve the repository on localhost and press Run. The capture sends silence to the device.</pre>
+<script src="../site/soundscapes/player.js"></script>
+<script>
+const result = document.querySelector('#result');
+document.querySelector('#run').onclick = async () => {
+  result.textContent = 'Running…';
+  let ctx;
+  try {
+    const rate = new URLSearchParams(location.search).get('rate') === '48000' ? 48000 : 44100;
+    ctx = new AudioContext({sampleRate:rate});
+    await ctx.resume();
+    const module = new Blob([`class Recorder extends AudioWorkletProcessor {
+      process(inputs) {
+        const l = inputs[0][0], r = inputs[0][1];
+        if (l && r) this.port.postMessage({frame:currentFrame,l,r});
+        return true;
+      }
+    } registerProcessor('silent-recorder',Recorder);`], {type:'text/javascript'});
+    const url = URL.createObjectURL(module);
+    await ctx.audioWorklet.addModule(url);
+    URL.revokeObjectURL(url);
+    const recorder = new AudioWorkletNode(ctx,'silent-recorder', {outputChannelCount:[2]});
+    recorder.connect(ctx.destination); // recorder output intentionally stays zero
+    const seed = Number(new URLSearchParams(location.search).get('seed') || 0);
+    const t = performance.now();
+    let failure;
+    const handle = await EntrainSoundscapes.prepare(ctx,{kind:'rain',seed,position:59.5,onerror: e => {failure=e;}});
+    const startup = performance.now()-t;
+    const frame = Math.ceil((ctx.currentTime+0.05)*ctx.sampleRate);
+    const frames = 6*ctx.sampleRate;
+    const l = new Float32Array(frames), r = new Float32Array(frames);
+    const finished = new Promise((resolve,reject) => {
+      const timer = setTimeout(() => reject(Error('capture timed out')),10000);
+      recorder.port.onmessage = ({data}) => {
+        const begin=Math.max(0,frame-data.frame), end=Math.min(data.l.length,frame+frames-data.frame);
+        if(begin<end) {
+          l.set(data.l.subarray(begin,end),data.frame+begin-frame);
+          r.set(data.r.subarray(begin,end),data.frame+begin-frame);
+        }
+        if(data.frame >= frame+frames) {clearTimeout(timer);resolve();}
+      };
+    });
+    handle.start(recorder,frame/ctx.sampleRate);
+    await finished;
+    handle.stop();
+    if (failure) throw failure;
+    // Check every audio quantum, including the producer's bounded preroll
+    // horizon and the old scene's 60-second repeat point.
+    for(let i=0;i<frames;i+=128) {
+      let power=0;
+      for(let j=i;j<Math.min(i+128,frames);j++) power+=l[j]*l[j]+r[j]*r[j];
+      if(!(power>0)) throw Error('silent or invalid capture at frame '+i);
+    }
+    window.streamCapture = {l,r,frame,seed,rate:ctx.sampleRate,position:59.5,startup};
+    const resumedAt = performance.now();
+    const again = await EntrainSoundscapes.prepare(ctx,{kind:'rain',seed,position:64.5});
+    again.start(recorder);
+    again.stop(ctx.currentTime+.02);
+    const elapsed = performance.now()-resumedAt;
+    let switchFailure;
+    for(let i=0;i<6;i++) {
+      const transient = await EntrainSoundscapes.prepare(ctx,{kind:['wind','surf','rain'][i%3],seed:i+1,
+        onerror:e=>{switchFailure=e;}});
+      transient.start(recorder);
+      transient.stop(ctx.currentTime+.025);
+      transient.stop(ctx.currentTime+.05); // does not extend the already requested stop
+    }
+    await new Promise(r=>setTimeout(r,100));
+    if(switchFailure) throw switchFailure;
+    const canceled = new AbortController();
+    const seeking = EntrainSoundscapes.prepare(ctx,{kind:'wind',position:3600,signal:canceled.signal});
+    await new Promise(r => setTimeout(r, 60)); // abort an active cold seek, not just module loading
+    canceled.abort();
+    try {await seeking; throw Error('expected cancellation');}
+    catch(e){if(e.name!=='AbortError') throw e;}
+    await ctx.close();
+    ctx=null;
+    const offline = new OfflineAudioContext(2, 2*44100, 44100);
+    const short = await EntrainSoundscapes.prepare(offline,{kind:'wind',position:5});
+    const delayedFrame = 6656; // (6656 / 44100) * 44100 lands slightly above 6656
+    short.start(offline.destination, delayedFrame/44100);
+    const rendered = await offline.startRendering();
+    short.stop();
+    if (rendered.getChannelData(0).slice(0,delayedFrame).some(x=>x!==0) || rendered.getChannelData(0)[delayedFrame]===0 || !rendered.getChannelData(0).slice(-500).some(x=>x!==0)) throw Error('delayed offline start was misaligned');
+    // Deliberately starve one isolated processor. There must be a single
+    // error, a short fade, then silence. Nothing reaches a real speaker.
+    const starved = new OfflineAudioContext(2, 44100, 44100);
+    await starved.audioWorklet.addModule('../site/soundscapes/output.js');
+    const block = new Float32Array(2*16384).fill(0.25);
+    const source = new AudioWorkletNode(starved,'entrain-soundscape',{numberOfInputs:0,numberOfOutputs:1,
+      outputChannelCount:[2],processorOptions:{frame:0,index:0,blocks:[block.buffer],startFrame:0}});
+    let underruns=0;
+    source.port.onmessage = ({data}) => { if (data.type === 'error') underruns++; };
+    source.connect(starved.destination);
+    const stopped = (await starved.startRendering()).getChannelData(0);
+    await new Promise(r => setTimeout(r,50));
+    if (underruns!==1 || stopped[100]!==0.25 || stopped.slice(16512).some(x => x!==0)) throw Error('underrun did not fail cleanly');
+    result.textContent = 'PASS: 6s of silent-device stereo capture, no gaps, cold seek '+startup.toFixed(0)+' ms, cached resume '+elapsed.toFixed(0)+' ms.';
+  } catch(e) {
+    result.textContent = 'FAIL: '+e.stack;
+    if(ctx) await ctx.close();
+  }
+};
+</script>

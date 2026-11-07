@@ -2,3 +2,6 @@
 /entrain
 *.test
 *.out
+
+# Local preview download, rebuilt from the working tree.
+/site/local-cli/

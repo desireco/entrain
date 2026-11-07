@@ -1,0 +1,52 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Native session parser check</title>
+<pre id="result">Running…</pre>
+<script src="../site/soundscapes/player.js"></script>
+<script>
+(async function () {
+  const result = document.querySelector('#result');
+  function check(ok, message) { if (!ok) throw Error(message); }
+  const {parseSession, prepare} = EntrainSoundscapes;
+  const source = [
+    '# A comment with punctuation and Unicode ☂',
+    "version = 1", "title = 'Window seat ☂'", "output = 'flac'", "bit_depth = 24",
+    "[[voice]]", "type = 'soundscape'", "background = 'wind'", "duration = 2.75",
+    "seed = 8472", "cue_interval_ms = 735",
+    "[[voice.cue_section]]", "cue = 'bell'", "start = '250ms'", "duration = '1.5s'",
+    "fade_in = '0.1s'", "fade_out = '0.2s'", "cue_volume_percent = 37.5", ""
+  ].join('\n');
+  async function rejects(text, message) {
+    try { await parseSession(text); } catch (error) { check(error.message.includes(message),error.message); return; }
+    throw Error('Expected validation error for ' + message);
+  }
+  try {
+    const context = new OfflineAudioContext(2, 44100, 44100);
+    const wind = await prepare(context, {kind:'wind',seed:8472});
+    wind.start(context.destination);
+    const parsed = await parseSession(source);
+    check(parsed.title === 'Window seat ☂' && parsed.background === 'wind' && parsed.seed === 8472, 'metadata');
+    check(parsed.durationMS === 2750 && parsed.output === 'flac' && parsed.bitDepth === 24 && parsed.sampleRate === 44100, 'encoding');
+    check(parsed.sections.length === 1 && parsed.cue === 'none', 'voice and sections');
+    const sec = parsed.sections[0];
+    check(sec.start === 250 && sec.length === 1500 && sec.fadeIn === 100 && sec.fadeOut === 200, 'section timing');
+    check(sec.volume === 37.5 && sec.interval === 735 && sec.cue === 'bell', 'inherited cue settings');
+    const canceled = new AbortController();
+    const ignored = parseSession(source,{signal:canceled.signal});
+    canceled.abort();
+    await ignored.then(() => { throw Error('Canceled parser request resolved'); }, error => check(error.name === 'AbortError',error.message));
+    await Promise.all([
+      rejects(source.replace('bit_depth', 'depth_bits'), 'unknown TOML field'),
+      rejects(source.replace("start = '250ms'","start = '3s'"), 'cue_section'),
+      rejects(source.replace('version = 1','version = 99'), 'unsupported or missing version')
+    ]);
+    check((await parseSession(source)).seed === 8472, 'valid score after failures');
+    const rendered = await context.startRendering();
+    wind.stop();
+    check(rendered.getChannelData(0).slice(-256).some(x => x !== 0), 'playback after parser failures');
+    result.textContent = 'PASS';
+  } catch (error) {
+    result.textContent = 'FAIL: ' + error.message;
+  }
+})();
+</script>
