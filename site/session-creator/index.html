@@ -67,6 +67,10 @@
       <p class="section-sub" id="studio-intro">Choose a sound, edit its score, and download the .entrain file to render with the CLI.</p>
     </div>
     <div class="studio reveal" data-od-id="studio-panel" data-creator="true">
+      <div class="handoff-chip" id="handoff-chip" hidden>
+        <span id="handoff-text"></span>
+        <button type="button" id="handoff-reset">Start over</button>
+      </div>
       <div class="library-pane">
         <div class="library-head"><h3 id="background-label">Background</h3><a href="session-creator/#session-source" class="jump-source">View .entrain source ↓</a></div>
         <div class="bed-picker" role="radiogroup" aria-labelledby="background-label">
@@ -231,6 +235,7 @@
             <p>Keep this sound and duration. Add cue sections or choose a repeatable variation in the Session Creator.</p>
             <a class="creator-button" href="session-creator/">Open Session Creator <span aria-hidden="true">→</span></a>
           </div>
+          <a class="studio-return" href="studio/">Audition more backgrounds in the Studio <span aria-hidden="true">→</span></a>
 
         </div>
       </div>

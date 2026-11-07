@@ -27,7 +27,14 @@
   var cueNames = { off: 'Off', tone: 'Tone', bell: 'Bell', noise: 'Noise', sections: 'Timed sections' };
   var creatorPage = document.body.dataset.page === 'session-creator';
   var current = localStorage.getItem('entrain.session');
-  if (creatorPage && SESSIONS[current]) current = 'pink';
+  var handoff = null;
+  if (creatorPage && SESSIONS[current]) {
+    // A binaural audition continues as its bed; brown has no preview bed.
+    handoff = {preset: current, brown: SESSIONS[current].bed === 'brown'};
+    var carried = localStorage.getItem('entrain.background');
+    current = Object.hasOwn(BACKGROUNDS, carried) ? carried : 'pink';
+  }
+  var arriving = !!localStorage.getItem('entrain.session');
   if (!Object.hasOwn(SESSIONS, current) && !Object.hasOwn(BACKGROUNDS, current)) current = 'pink';
   var lastBackground = Object.hasOwn(BACKGROUNDS, current) ? current : localStorage.getItem('entrain.background');
   if (!Object.hasOwn(BACKGROUNDS, lastBackground)) lastBackground = 'pink';
@@ -821,6 +828,23 @@
   });
   var savedVol = localStorage.getItem('entrain.vol');
   if (savedVol !== null) { vol.value = savedVol; $('#vol-read').textContent = savedVol + '%'; }
+  var handoffChip = $('#handoff-chip');
+  if (creatorPage && arriving && handoffChip) {
+    $('#handoff-text').innerHTML = handoff && handoff.brown ?
+      'Continuing from the Studio — <strong>sleep-delta</strong> renders with brown noise offline, so the preview uses pink.' :
+      handoff ? 'Continuing from the Studio — the bed behind <strong>' + handoff.preset + '</strong>.' :
+      'Continuing <strong>' + BACKGROUNDS[current] + '</strong> from the Studio.';
+    handoffChip.hidden = false;
+    $('#handoff-reset').addEventListener('click', function () {
+      current = 'pink';
+      $('#mix-duration').value = '6m';
+      lengthChoice = '6m';
+      syncDuration();
+      $('#mix-duration').dispatchEvent(new Event('input'));
+      handoffChip.hidden = true;
+      syncSessionUI();
+    });
+  }
   setInterval(function () {
     if (engine.playing) $('#elapsed').textContent = fmt(engine.position());
   }, 250);
