@@ -16,6 +16,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/desireco/entrain/synth"
 )
 
 // ToneKind identifies the voice type of a tone-set entry.
@@ -39,13 +41,14 @@ const (
 // ToneSpec is one entry of a tone-set.
 type ToneSpec struct {
 	Kind    ToneKind
-	Carrier float64 // Binaural; Bell: strike frequency; Spin: delay width in µs
-	Beat    float64 // Binaural/Spin
-	Sign    int     // Binaural/Flip/Doppler: +1 = '+' (left ear carries the higher tone), −1 = '-', 0 = plain sine
-	Rate    float64 // Flip/EMDR/Doppler: modulation rate in Hz (kind default applied by the parser when absent)
-	Depth   float64 // Doppler: peak detune in cents
-	Amp     float64 // 0–100 scale
-	Raw     string  // original spec text, for plan display
+	Carrier float64         // Binaural; Bell: strike frequency; Spin: delay width in µs
+	Beat    float64         // Binaural/Spin
+	Sign    int             // Binaural/Flip/Doppler: +1 = '+' (left ear carries the higher tone), −1 = '-', 0 = plain sine
+	Rate    float64         // Flip/EMDR/Doppler: modulation rate in Hz (kind default applied by the parser when absent)
+	Depth   float64         // Doppler: peak detune in cents
+	Shape   synth.EMDRShape // EMDR only; the empty value is the original tone
+	Amp     float64         // 0–100 scale
+	Raw     string          // original spec text, for plan display
 }
 
 // ToneSet is a named collection of tone specs (a `<name>: <spec>…` line).
@@ -77,8 +80,8 @@ type Options struct {
 	FadeMS   string // -F ms, raw text (fade/crossfade length override)
 
 	Changeover string // entrain extension: -changeover <dur>, session-wide default changeover
-	Clock    string // -T time, raw text (live-mode start; offline renders anchor at the first event)
-	Predef   string // -p <spec…> (unsupported)
+	Clock      string // -T time, raw text (live-mode start; offline renders anchor at the first event)
+	Predef     string // -p <spec…> (unsupported)
 }
 
 // Warning is a lint finding: the sequence parses and plans, but something
@@ -503,8 +506,23 @@ func (p *parser) toneSetLine(name, rest string) (ToneSet, error) {
 		if spec.Kind == Flip || spec.Kind == EMDR || spec.Kind == Doppler {
 			p.extSyntax = true
 			sawDepth := false
+			first := i
 			for i+1 < len(fields) {
-				m := rateAttr.FindStringSubmatch(fields[i+1])
+				attr := fields[i+1]
+				if spec.Kind == EMDR && strings.HasPrefix(attr, "shape=") {
+					if spec.Shape != "" {
+						return ts, fmt.Errorf("line %d: spec %q: duplicate shape", p.line, raw)
+					}
+					spec.Shape = synth.EMDRShape(strings.TrimPrefix(attr, "shape="))
+					switch spec.Shape {
+					case synth.EMDRTone, synth.EMDRBell, synth.EMDRNoise:
+					default:
+						return ts, fmt.Errorf("line %d: spec %q: bad %s (want shape=tone, shape=bell or shape=noise)", p.line, raw, attr)
+					}
+					i++
+					continue
+				}
+				m := rateAttr.FindStringSubmatch(attr)
 				if m == nil {
 					break
 				}
@@ -519,6 +537,9 @@ func (p *parser) toneSetLine(name, rest string) (ToneSet, error) {
 					sawDepth = true
 				}
 				i++
+			}
+			if spec.Shape != "" {
+				spec.Raw = strings.Join(fields[first:i+1], " ")
 			}
 			if spec.Rate == 0 {
 				spec.Rate = defaultRate(spec.Kind)
