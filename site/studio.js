@@ -641,7 +641,9 @@
       lastBackground = current;
       localStorage.setItem('entrain.background', current);
     }
-    $('.source-caption').textContent = background ? 'Edit the score and apply it to the preview, or download it for the CLI.'
+    $('.source-caption').textContent = background ? (creatorPage ?
+      'This is the score of your session. Edit it directly, or shape it with the controls.'
+      : 'Edit the score and apply it to the preview, or download it for the CLI.')
       : 'While you audition this binaural preset, the editor keeps your ' + BACKGROUNDS[lastBackground].toLowerCase() + ' score. Apply the score to audition it.';
     $('#excerpt-panel').hidden = !background;
     $('#seed-field').hidden = !background || !generatedBeds.has(current);
@@ -798,6 +800,11 @@
     a.remove();
     setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
     $('#source-feedback').textContent = 'Download started for ' + a.download + '.';
+    if (creatorPage) {
+      var strip = $('#download-confirm');
+      strip.innerHTML = '<strong>' + a.download + ' saved.</strong> Render it: <code>' + $('#mix-command').textContent + '</code>';
+      strip.hidden = false;
+    }
   });
   function updateStatus(message) {
     var playing = engine.playing, background = !!BACKGROUNDS[current];
