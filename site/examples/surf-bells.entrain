@@ -1,0 +1,19 @@
+version = 1
+title = "Shore Surf with Bells"
+output = "flac"
+bit_depth = 24
+
+[[voice]]
+type = "soundscape"
+background = "surf"
+duration = "12m"
+
+# The first 18 seconds belong to the shoreline. Bells leave before the end.
+[[voice.cue_section]]
+start = "18s"
+duration = "11m12s"
+cue = "bell"
+cue_volume_percent = 70
+cue_interval_ms = 960
+fade_in = "9s"
+fade_out = "24s"

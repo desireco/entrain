@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<base href="../">
+<title>Session Creator · Entrain</title>
+<meta name="description" content="Create, edit, preview and download a native .entrain session to render locally.">
+<meta name="theme-color" content="#f2f0e8">
+<link rel="canonical" href="https://entrain.cc/session-creator/">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<!-- Social cards: X reads twitter:*, Facebook and LinkedIn read og:* -->
+<meta property="og:site_name" content="Entrain">
+<meta property="og:title" content="Session Creator · Entrain">
+<meta property="og:description" content="Create, edit, preview and download a native .entrain session to render locally.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://entrain.cc/session-creator/">
+<meta property="og:image" content="https://entrain.cc/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:alt" content="Entrain cover with audio waveform and WAV, FLAC and MP3 formats.">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@builtbydakic">
+<meta name="twitter:title" content="Session Creator · Entrain">
+<meta name="twitter:description" content="Create, edit, preview and download a native .entrain session to render locally.">
+<meta name="twitter:image" content="https://entrain.cc/og.png">
+<meta name="twitter:image:alt" content="Entrain cover with audio waveform and WAV, FLAC and MP3 formats.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<link rel="stylesheet" href="studio.css">
+</head>
+<body data-page="session-creator">
+<a class="skip-link" href="session-creator/#main">Skip to content</a>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="nav" data-od-id="nav">
+  <div class="container nav-inner">
+    <a class="brand" href="./" aria-label="Entrain home">
+      <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#fbfaf5" stroke="#d9d4c4"/><path d="M6 16 Q 9.5 8 13 16 T 20 16 T 26 16" stroke="#c2410c" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>
+      ENTRAIN
+    </a>
+    <nav class="nav-links" aria-label="Primary"><a href="./">Home</a>
+      <a href="studio/">Studio</a>
+      <a href="session-creator/" class="active" aria-current="page">Session Creator</a>
+      <a href="listening-guide/">Listening Guide</a>
+      <a href="handbook/">Handbook</a></nav>
+    <a class="nav-gh" href="https://github.com/desireco/entrain" target="_blank" rel="noopener" aria-label="GitHub — desireco/entrain">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+      <span class="gh-label">desireco/entrain</span>
+    </a>
+  </div>
+</header>
+
+<main id="main">
+<section class="section" id="studio" data-od-id="studio">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow" id="studio-eyebrow">Session Creator</span>
+      <h1 id="studio-heading">Create a session.</h1>
+      <p class="section-sub" id="studio-intro">Choose a sound, edit its score, and download the .entrain file to render with the CLI.</p>
+    </div>
+    <div class="studio reveal" data-od-id="studio-panel" data-creator="true">
+      <div class="library-pane">
+        <div class="library-head"><h3 id="background-label">Background</h3><a href="session-creator/#session-source" class="jump-source">View .entrain source ↓</a></div>
+        <div class="bed-picker" role="radiogroup" aria-labelledby="background-label">
+            <button type="button" role="radio" data-background="pink" aria-checked="true" tabindex="0">
+              <span class="bed-title">Pink noise</span><small>Warm, steady hush</small>
+              <svg aria-hidden="true" focusable="false" viewBox="0 0 168 28" preserveAspectRatio="none"><use href="soundscapes/traces.svg#pink"/></svg>
+            </button>
+            <button type="button" role="radio" data-background="white" aria-checked="false" tabindex="-1">
+              <span class="bed-title">White noise</span><small>Bright, even hiss</small>
+              <svg aria-hidden="true" focusable="false" viewBox="0 0 168 28" preserveAspectRatio="none"><use href="soundscapes/traces.svg#white"/></svg>
+            </button>
+            <button type="button" role="radio" data-background="rain" aria-checked="false" tabindex="-1">
+              <span class="bed-title">Soft rain</span><small>A shifting patter</small>
+              <svg aria-hidden="true" focusable="false" viewBox="0 0 168 28" preserveAspectRatio="none"><use href="soundscapes/traces.svg#rain"/></svg>
+            </button>
+            <button type="button" role="radio" data-background="wind" aria-checked="false" tabindex="-1">
+              <span class="bed-title">Wind</span><small>Slow, airy gusts</small>
+              <svg aria-hidden="true" focusable="false" viewBox="0 0 168 28" preserveAspectRatio="none"><use href="soundscapes/traces.svg#wind"/></svg>
+            </button>
+            <button type="button" role="radio" data-background="surf" aria-checked="false" tabindex="-1">
+              <span class="bed-title">Ocean surf</span><small>Rolling waves</small>
+              <svg aria-hidden="true" focusable="false" viewBox="0 0 168 28" preserveAspectRatio="none"><use href="soundscapes/traces.svg#surf"/></svg>
+            </button>
+        </div>
+      </div>
+      <div class="studio-grid">
+        <div class="listen-pane">
+          <div class="transport">
+            <button class="play-btn" id="play-btn" data-od-id="studio-play" aria-pressed="false" aria-label="Play session">
+              <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>
+              <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
+            </button>
+            <div class="transport-meta">
+              <div class="t-name" id="t-name">Pink noise</div>
+              <div class="t-sub" id="t-sub">Background only · 60-second loop</div>
+            </div>
+            <div class="elapsed" id="elapsed" aria-label="Elapsed time">00:00</div>
+          </div>
+          <div class="scope" data-od-id="studio-scope">
+            <canvas id="scope-canvas"></canvas>
+            <span class="scope-tag">BEATSCOPE · LIVE</span>
+            <span class="scope-state" id="scope-state"><span class="dot"></span>STANDBY</span>
+          </div>
+          <div class="listen-level"><label class="chip-label" for="volume">Preview volume</label>
+          <div class="vol-row">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="color:var(--muted)"><path d="M11 5 6 9H2v6h4l5 4V5z"/></svg>
+            <input type="range" id="volume" min="0" max="100" value="70">
+            <span class="mono" id="vol-read" style="font-size:13px;color:var(--muted);min-width:38px;text-align:right">70%</span>
+          </div></div>
+          <div class="status-line" id="status-line" aria-live="polite">
+            Press play to begin.
+          </div>
+          <div class="readouts" id="session-readouts" data-od-id="studio-readouts" hidden>
+            <div class="ro"><div class="k">L carrier</div><div class="v" id="ro-l">180.00 Hz</div></div>
+            <div class="ro"><div class="k">R carrier</div><div class="v" id="ro-r">220.00 Hz</div></div>
+            <div class="ro"><div class="k">Beat</div><div class="v" id="ro-beat"><em>40.0 Hz γ</em></div></div>
+            <div class="ro"><div class="k">Bed</div><div class="v" id="ro-bed">pink</div></div>
+            <div class="ro"><div class="k">Engine</div><div class="v">Web Audio</div></div>
+            <div class="ro"><div class="k">Would render</div><div class="v" id="ro-out">focus-40-pink.mp3</div></div>
+          </div>
+        </div>
+        <div class="settings-pane">
+          <div class="mix-field" id="duration-field">
+            <h3 id="length-label">Session duration</h3>
+            <div class="duration-presets" role="group" aria-labelledby="length-label"><button type="button" data-length="1m" aria-pressed="false">1 min</button>
+<button type="button" data-length="6m" aria-pressed="true">6 min</button>
+<button type="button" data-length="15m" aria-pressed="false">15 min</button>
+<button type="button" data-length="30m" aria-pressed="false">30 min</button>
+<button type="button" data-length="1h" aria-pressed="false">1 hour</button>
+<button type="button" data-length="custom" aria-pressed="false">Custom</button></div>
+            <div id="custom-length" hidden>
+              <label for="mix-duration">Custom duration</label>
+              <input id="mix-duration" class="cue-select" value="6m" maxlength="20" type="text" aria-describedby="duration-hint" autocomplete="off" spellcheck="false" placeholder="e.g. 1h30m">
+            </div>
+            <span class="duration-hint" id="duration-hint">The session renders at this length.</span>
+          </div>
+          <div class="mix-field">
+            <label class="chip-label" for="cue-shape">Alternating cue</label>
+            <select id="cue-shape" class="cue-select">
+              <option value="off">None · background only</option><option value="bell">Bell</option>
+              <option value="tone">Tone</option><option value="noise">Noise</option>
+              <option value="sections">Timed sections</option>
+            </select>
+          </div>
+          <div id="cue-tuning" class="cue-tuning" hidden>
+            <div class="cue-setting">
+              <label class="chip-label" for="cue-volume">Cue volume</label><output id="cue-volume-read" for="cue-volume">100%</output>
+              <input id="cue-volume" type="range" min="0" max="200" step="any" value="100">
+            </div>
+            <div class="cue-setting">
+              <label class="chip-label" for="cue-interval">Time between cues</label><output id="cue-interval-read" for="cue-interval">625 ms</output>
+              <input id="cue-interval" type="range" min="350" max="2000" step="1" value="625">
+            </div>
+          </div>
+          <div class="mix-cli" id="section-editor" hidden>
+            <h3>Timed cue sections</h3>
+            <p class="source-feedback">Each section starts on the left. Gaps play the background alone.</p>
+            <div id="section-list"></div>
+            <div class="source-actions"><button type="button" id="add-section">Add section</button></div>
+            <p id="section-message" class="source-feedback" aria-live="polite"></p>
+          </div>
+          <details class="studio-detail" id="seed-field" hidden>
+            <summary>Sound variation</summary>
+            <div class="mix-field detail-body">
+            <label class="chip-label" for="mix-seed">Variation seed</label>
+            <div class="seed-row"><input id="mix-seed" class="cue-select" type="text" inputmode="numeric" autocomplete="off" placeholder="Original" aria-describedby="seed-hint">
+            <button type="button" id="new-seed">New variation</button></div>
+            <span class="duration-hint" id="seed-hint">Leave blank for the original sound.</span>
+          </div></details>
+          <div class="mix-cli" id="excerpt-panel">
+            <label class="excerpt-toggle"><input id="preview-excerpt" type="checkbox"> Preview an excerpt</label>
+            <div id="excerpt-fields" hidden>
+              <div class="section-fields"><label>Start <input id="preview-start" value="0s" class="cue-select"></label>
+              <label>Length <input id="preview-length" value="10s" class="cue-select"></label></div>
+              <p class="source-feedback" id="excerpt-hint" aria-live="polite"></p>
+              <code id="excerpt-command"></code>
+            </div>
+          </div>
+          <details class="session-list" id="session-details">
+          <summary>Binaural sessions</summary>
+          <div class="chip-stack" role="group" aria-label="Choose a session" id="chip-stack">
+            <button class="chip" data-od-id="chip-focus-40-pink" data-session="focus-40-pink" aria-pressed="true">
+              <span class="chip-name">focus-40-pink <span class="chip-hz">40γ</span></span>
+              <span class="chip-desc">40 Hz binaural beat over a pink noise bed.</span>
+            </button>
+            <button class="chip" data-od-id="chip-meditate-alpha" data-session="meditate-alpha" aria-pressed="false">
+              <span class="chip-name">meditate-alpha <span class="chip-hz">10α</span></span>
+              <span class="chip-desc">10 Hz binaural beat over soft pink noise.</span>
+            </button>
+            <button class="chip" data-od-id="chip-sleep-delta" data-session="sleep-delta" aria-pressed="false">
+              <span class="chip-name">sleep-delta <span class="chip-hz">3δ</span></span>
+              <span class="chip-desc">3 Hz binaural beat over deeper brown noise.</span>
+            </button>
+          </div>
+          </details>
+        </div>
+        <div class="source-pane" id="session-source" tabindex="-1">
+          <div id="mix-cli">
+            <div class="source-top"><h3>.entrain source</h3><span id="source-name">pink.entrain</span></div>
+            <p class="source-caption">Edit the score and apply it to the preview, or download it for the CLI.</p>
+            <textarea id="mix-source" aria-label="Editable .entrain session source" aria-describedby="document-status" rows="10" spellcheck="false"></textarea>
+            <div class="source-actions">
+              <button type="button" id="apply-source" disabled>Apply source</button>
+              <button type="button" id="mix-download">Download .entrain</button>
+              <button type="button" id="mix-copy">Copy session</button>
+              <span class="source-feedback" id="source-feedback" role="status"></span>
+            </div>
+
+            <p id="document-status" role="status" class="document-status" hidden></p>
+            <div class="document-tools" id="document-tools" hidden>
+              <button type="button" id="use-controls">Use control settings</button>
+              <div id="source-confirm" hidden>Replace your edited text and its comments with the current control settings?
+                <button type="button" id="confirm-control-source">Replace text</button>
+                <button type="button" id="cancel-control-source">Keep my text</button>
+              </div>
+            </div>
+            <span class="chip-label">Render with the local CLI</span><code id="mix-command"></code>
+            <p class="source-feedback cli-download"><a href="local-cli/entrain-linux-amd64" download="entrain">Linux x86-64 CLI</a> · <a href="handbook/">Build for another platform</a></p>
+          </div>
+          <div class="creator-link" id="creator-link">
+            <h3>Make this a session</h3>
+            <p>Keep this sound and duration. Add cue sections or choose a repeatable variation in the Session Creator.</p>
+            <a class="creator-button" href="session-creator/">Open Session Creator <span aria-hidden="true">→</span></a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<template id="cue-row-template">
+  <fieldset class="cue-row">
+    <legend></legend>
+    <div class="section-fields">
+      <label>Start <input data-field="start" class="cue-select"></label>
+      <label>Duration <input data-field="duration" class="cue-select"></label>
+      <label>Cue <select data-field="cue" class="cue-select"><option value="bell">Bell</option><option value="tone">Tone</option><option value="noise">Noise</option></select></label>
+      <label>Volume (%) <input data-field="volume" type="number" min="0" max="200" step="any" class="cue-select"></label>
+      <label>Interval (ms) <input data-field="interval" type="number" min="350" max="2000" step="1" class="cue-select"></label>
+      <label>Fade in <input data-field="fadeIn" class="cue-select"></label>
+      <label>Fade out <input data-field="fadeOut" class="cue-select"></label>
+    </div>
+    <div class="source-actions"><button type="button" data-action="audition">Preview entrance</button><button type="button" data-action="remove">Remove</button></div>
+  </fieldset>
+</template>
+
+</main>
+<footer data-od-id="footer">
+  <div class="container">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="brand" href="./" aria-label="Entrain home">
+          <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#fbfaf5" stroke="#d9d4c4"/><path d="M6 16 Q 9.5 8 13 16 T 20 16 T 26 16" stroke="#c2410c" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>
+          ENTRAIN
+        </a>
+        <p>A local audio renderer and clean-room Go reimplementation of SBaGen.</p>
+      </div>
+      <div class="foot-col" data-od-id="footer-project">
+        <h4>Project</h4>
+        <ul>
+          <li><a href="https://github.com/desireco/entrain" target="_blank" rel="noopener">GitHub</a></li>
+          <li><a href="https://github.com/desireco/entrain/releases" target="_blank" rel="noopener">Releases</a></li>
+          <li><a href="./#sessions">Sessions and examples</a></li>
+          <li><a href="./#faq">FAQ</a></li>
+          <li><a href="./#engine">Inside the engine</a></li>
+          <li class="plain">MIT licensed</li>
+        </ul>
+      </div>
+      <div class="foot-col" data-od-id="footer-family">
+        <h4>SBaGen family</h4>
+        <ul>
+          <li><a href="https://uazu.net/sbagen/" target="_blank" rel="noopener">SBaGen (original) · Jim Peters</a></li>
+          <li><a href="https://desireco.github.io/sbagen/" target="_blank" rel="noopener">SBaGen, maintained · GPLv2</a><a class="sub" href="https://github.com/desireco/sbagen" target="_blank" rel="noopener">github</a></li>
+          <li><a href="https://github.com/ruanklein/sbagen-plus" target="_blank" rel="noopener">SBaGen+ · Ruan Klein</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="legal">
+      <span>An EntrainSpace project. © 2026 Zeljko Dakic.</span>
+      <span class="mono">SBaGen is © Jim Peters (GPL v2). Entrain is not affiliated with or endorsed by Jim Peters or Ruan Klein.</span>
+      <span class="mono" style="margin-left:auto">Clean-room Go · source build</span>
+    </div>
+  </div>
+</footer>
+<script src="site.js"></script>
+<script src="session-editor.js"></script>
+<script src="session-document.js"></script>
+<script src="soundscapes/player.js"></script>
+<script src="studio.js"></script>
+</body>
+</html>

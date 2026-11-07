@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<base href="../">
+<title>Handbook · Entrain</title>
+<meta name="description" content="Get the Entrain CLI and render an editable session to WAV, FLAC or MP3.">
+<meta name="theme-color" content="#f2f0e8">
+<link rel="canonical" href="https://entrain.cc/handbook/">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<!-- Social cards: X reads twitter:*, Facebook and LinkedIn read og:* -->
+<meta property="og:site_name" content="Entrain">
+<meta property="og:title" content="Handbook · Entrain">
+<meta property="og:description" content="Get the Entrain CLI and render an editable session to WAV, FLAC or MP3.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://entrain.cc/handbook/">
+<meta property="og:image" content="https://entrain.cc/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:alt" content="Entrain cover with audio waveform and WAV, FLAC and MP3 formats.">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@builtbydakic">
+<meta name="twitter:title" content="Handbook · Entrain">
+<meta name="twitter:description" content="Get the Entrain CLI and render an editable session to WAV, FLAC or MP3.">
+<meta name="twitter:image" content="https://entrain.cc/og.png">
+<meta name="twitter:image:alt" content="Entrain cover with audio waveform and WAV, FLAC and MP3 formats.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+
+</head>
+<body data-page="handbook">
+<a class="skip-link" href="handbook/#main">Skip to content</a>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="nav" data-od-id="nav">
+  <div class="container nav-inner">
+    <a class="brand" href="./" aria-label="Entrain home">
+      <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#fbfaf5" stroke="#d9d4c4"/><path d="M6 16 Q 9.5 8 13 16 T 20 16 T 26 16" stroke="#c2410c" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>
+      ENTRAIN
+    </a>
+    <nav class="nav-links" aria-label="Primary"><a href="./">Home</a>
+      <a href="studio/">Studio</a>
+      <a href="session-creator/">Session Creator</a>
+      <a href="listening-guide/">Listening Guide</a>
+      <a href="handbook/" class="active" aria-current="page">Handbook</a></nav>
+    <a class="nav-gh" href="https://github.com/desireco/entrain" target="_blank" rel="noopener" aria-label="GitHub — desireco/entrain">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+      <span class="gh-label">desireco/entrain</span>
+    </a>
+  </div>
+</header>
+
+<main id="main">
+<section class="section" id="handbook" data-od-id="handbook">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Handbook</span>
+      <h1>Render a session <em>with the CLI.</em></h1>
+      <p class="section-sub">Use your own <code>.entrain</code> session or download one from <a href="session-creator/">Session Creator</a>. The local CLI renders evolving rain, wind and surf. The published <a class="guide-link" href="https://github.com/desireco/entrain/releases/tag/v0.2.0">v0.2.0 release</a> plays looped rain and has no wind or surf.</p>
+    </div>
+    <ol class="how-to">
+      <li><strong>Get the local CLI.</strong> On Linux x86-64, <a href="local-cli/entrain-linux-amd64" download="entrain">download the matching executable</a> and run <code>chmod +x ./entrain</code> in its folder. On another platform, open this source checkout and build with <a href="https://go.dev/doc/install">Go</a>: <code>go build -o entrain ./cmd/entrain</code>. On Windows build <code>entrain.exe</code> and use <code>.&#92;entrain.exe</code>.</li>
+      <li><strong>Build or edit a session.</strong> Open <a href="session-creator/">Session Creator</a> and choose a background, a length, and optional cues. To edit the score directly, open the <a href="session-creator/#session-source">.entrain source</a>, change the text, and choose <strong>Apply source</strong>. Press Play to hear the applied settings. Preview volume controls the browser only.</li>
+      <li><strong>Save and render.</strong> Copy or download the displayed text, including your edits and comments. Place the file beside the executable and run the command shown in the editor. For a file named <code>rain-bell.entrain</code>, run <code>./entrain render rain-bell.entrain -o rain-bell.wav</code>, then open the WAV in an audio player. For timed cues, use sections with their own start, duration and fades. Use <strong>Preview entrance</strong> to audition a section before rendering. <a href="docs/cli-guide.md" download>CLI guide</a> · <a href="docs/sequence-format.md" download>Native session reference</a>.</li>
+    </ol>
+    <div class="handbook reveal" style="--d:100ms">
+      <div class="tab-rail" role="tablist" aria-label="Handbook sections" data-od-id="handbook-tabs">
+        <button class="tab-btn" role="tab" id="tab-install" aria-selected="true" aria-controls="panel-install">Install<span class="mono">go install</span></button>
+        <button class="tab-btn" role="tab" id="tab-render" aria-selected="false" aria-controls="panel-render">Render a session<span class="mono">entrain render</span></button>
+        <button class="tab-btn" role="tab" id="tab-verify" aria-selected="false" aria-controls="panel-verify">Verify any audio<span class="mono">beatscope</span></button>
+        <button class="tab-btn" role="tab" id="tab-noise" aria-selected="false" aria-controls="panel-noise">Generate noise beds<span class="mono">noisemaker</span></button>
+      </div>
+      <div class="terminal-panel" data-od-id="handbook-terminal">
+        <div class="term-head" aria-hidden="true"><i></i><i></i><i></i><span id="term-tab-name">entrain · install</span></div>
+        <div id="panel-install" role="tabpanel" aria-labelledby="tab-install" class="term-code">
+<span class="c"># Build the matching local CLI from this source checkout</span><br>
+<span class="p">$</span> go build -o ./entrain ./cmd/entrain<br>
+<span class="p">$</span> ./entrain mix --help<br><br>
+<span class="c"># Earlier release: v0.2.0 archives with the original rain loop</span><br>
+<a href="https://github.com/desireco/entrain/releases/download/v0.2.0/entrain-darwin-arm64.tar.gz" target="_blank" rel="noopener">macOS · Apple silicon</a> · <a href="https://github.com/desireco/entrain/releases/download/v0.2.0/entrain-darwin-amd64.tar.gz" target="_blank" rel="noopener">macOS · Intel</a> · <a href="https://github.com/desireco/entrain/releases/download/v0.2.0/entrain-linux-amd64.tar.gz" target="_blank" rel="noopener">Linux · x86-64</a> · <a href="https://github.com/desireco/entrain/releases/download/v0.2.0/entrain-linux-arm64.tar.gz" target="_blank" rel="noopener">Linux · ARM64</a> · <a href="https://github.com/desireco/entrain/releases/download/v0.2.0/entrain-windows-amd64.tar.gz" target="_blank" rel="noopener">Windows · x86-64</a><br>
+<a href="https://github.com/desireco/entrain/releases" target="_blank" rel="noopener">all releases</a>
+        </div>
+        <div id="panel-render" role="tabpanel" aria-labelledby="tab-render" class="term-code" hidden>
+<span class="c"># A saved Studio session</span><br>
+<span class="p">$</span> ./entrain render rain-bell.entrain <span class="flag">-o</span> rain-bell.wav<br><br>
+<span class="c"># The same six-minute sound directly from the CLI</span><br>
+<span class="p">$</span> ./entrain mix rain <span class="flag">--cue</span> bell <span class="flag">--cue-volume</span> 50 <span class="flag">--cue-interval-ms</span> 900 <span class="flag">--duration</span> 6m <span class="flag">-o</span> rain-bell.wav<br><br>
+<span class="c"># Wind and surf also accept a cue; omit --cue for the bed alone</span><br>
+<span class="p">$</span> ./entrain mix surf <span class="flag">--cue</span> bell <span class="flag">--duration</span> 12m <span class="flag">-o</span> surf-bells.flac<br><br>
+<span class="c"># Save editable source without rendering audio</span><br>
+<span class="p">$</span> ./entrain mix rain <span class="flag">--cue</span> bell <span class="flag">--duration</span> 20s <span class="flag">--save-session</span> my-rain.entrain<br><br>
+<span class="c"># Inspect a scheduled cue from the included timeline example</span><br>
+<span class="p">$</span> ./entrain render examples/rain-bell-timeline.entrain <span class="flag">--dry-run</span><br><br>
+<span class="c"># A background on its own</span><br>
+<span class="p">$</span> ./entrain mix pink <span class="flag">--duration</span> 10m <span class="flag">-f</span> flac <span class="flag">-o</span> pink.flac<br><br>
+<span class="c"># A legacy .sbg score from the source checkout</span><br>
+<span class="p">$</span> ./entrain render examples/focus-40-pink.sbg <span class="flag">-L</span> 0:30 <span class="flag">-o</span> focus.wav
+        </div>
+        <div id="panel-verify" role="tabpanel" aria-labelledby="tab-verify" class="term-code" hidden>
+<span class="c"># carriers, beat frequency and confidence per pair</span><br>
+<span class="p">$</span> beatscope focus.wav<br>
+<span class="p">$</span> beatscope focus.flac <span class="flag">--json</span><br>
+<span class="p">$</span> beatscope focus.wav <span class="flag">--min-confidence</span> 0.6<br>
+<br>
+<span class="c"># reads WAV (16/24-bit) and FLAC. MP3/OGG: convert to WAV first —</span><br>
+<span class="c"># no MP3 decoder in-tree, by design.</span>
+        </div>
+        <div id="panel-noise" role="tabpanel" aria-labelledby="tab-noise" class="term-code" hidden>
+<span class="p">$</span> noisemaker pink 30m <span class="flag">-o</span> bed.wav<br>
+<span class="p">$</span> noisemaker brown 1:30:00 <span class="flag">-o</span> bed.flac <span class="flag">-b</span> 24<br>
+<span class="p">$</span> noisemaker alpha 2h <span class="flag">--alpha</span> 1.4 <span class="flag">--level</span> 0.12 <span class="flag">--seed</span> 7 <span class="flag">-o</span> drift.wav<br>
+<br>
+<span class="c"># white, pink, brown — or any 1/f^α slope with --alpha.</span><br>
+<span class="c"># default level 0.155 RMS, calibrated to sit under binaural tones.</span><br>
+<span class="c"># deterministic with --seed.</span>
+        </div>
+        <div class="flags-strip">
+          <span>formats <b>-f wav|flac|mp3</b></span>
+          <span>depth <b>-b 16|24</b></span>
+          <span>mp3 bitrate <b>-q ≤ 320</b></span>
+          <span>length <b>-L h:mm[:ss]</b></span>
+          <span>output <b>-o file</b></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+<footer data-od-id="footer">
+  <div class="container">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="brand" href="./" aria-label="Entrain home">
+          <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#fbfaf5" stroke="#d9d4c4"/><path d="M6 16 Q 9.5 8 13 16 T 20 16 T 26 16" stroke="#c2410c" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>
+          ENTRAIN
+        </a>
+        <p>A local audio renderer and clean-room Go reimplementation of SBaGen.</p>
+      </div>
+      <div class="foot-col" data-od-id="footer-project">
+        <h4>Project</h4>
+        <ul>
+          <li><a href="https://github.com/desireco/entrain" target="_blank" rel="noopener">GitHub</a></li>
+          <li><a href="https://github.com/desireco/entrain/releases" target="_blank" rel="noopener">Releases</a></li>
+          <li><a href="./#sessions">Sessions and examples</a></li>
+          <li><a href="./#faq">FAQ</a></li>
+          <li><a href="./#engine">Inside the engine</a></li>
+          <li class="plain">MIT licensed</li>
+        </ul>
+      </div>
+      <div class="foot-col" data-od-id="footer-family">
+        <h4>SBaGen family</h4>
+        <ul>
+          <li><a href="https://uazu.net/sbagen/" target="_blank" rel="noopener">SBaGen (original) · Jim Peters</a></li>
+          <li><a href="https://desireco.github.io/sbagen/" target="_blank" rel="noopener">SBaGen, maintained · GPLv2</a><a class="sub" href="https://github.com/desireco/sbagen" target="_blank" rel="noopener">github</a></li>
+          <li><a href="https://github.com/ruanklein/sbagen-plus" target="_blank" rel="noopener">SBaGen+ · Ruan Klein</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="legal">
+      <span>An EntrainSpace project. © 2026 Zeljko Dakic.</span>
+      <span class="mono">SBaGen is © Jim Peters (GPL v2). Entrain is not affiliated with or endorsed by Jim Peters or Ruan Klein.</span>
+      <span class="mono" style="margin-left:auto">Clean-room Go · source build</span>
+    </div>
+  </div>
+</footer>
+<script src="site.js"></script>
+<script src="handbook.js"></script>
+</body>
+</html>

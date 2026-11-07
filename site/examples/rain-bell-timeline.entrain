@@ -1,0 +1,18 @@
+# Six minutes of Soft Rain. Listen for the first bell one minute in.
+version = 1
+title = "Rain with distant bells"
+output = "flac"
+
+[[voice]]
+type = "soundscape"
+background = "rain"
+duration = "6m"
+
+[[voice.cue_section]]
+start = "1m"
+duration = "4m"
+cue = "bell"
+cue_volume_percent = 65
+cue_interval_ms = 850
+fade_in = "12s"
+fade_out = "30s"
