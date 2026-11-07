@@ -1,0 +1,11 @@
+## Soft alternating bells — 25 seconds
+##
+## A low bell passes between the ears every 625 ms over quiet pink noise.
+## Swap shape=bell for shape=tone or shape=noise to compare the cues.
+## extended syntax: entrain
+
+bells: emdr:420/22 rate0.8 shape=bell pink/14
+off: -
+
+00:00:00 bells fade1
+00:00:25 off fade1.75

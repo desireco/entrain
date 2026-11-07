@@ -1,0 +1,12 @@
+# Render with: entrain render examples/rain-bell.entrain -o rain-bell.flac
+version = 1
+title = "Soft Rain with Bells"
+output = "flac"
+
+[[voice]]
+type = "soundscape"
+background = "rain"
+duration = "6m"
+cue = "bell"
+cue_volume_percent = 65
+cue_interval_ms = 850

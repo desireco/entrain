@@ -1,0 +1,9 @@
+version = 1
+title = "Evolving Rain"
+output = "flac"
+bit_depth = 24
+
+[[voice]]
+type = "soundscape"
+background = "rain"
+duration = "30m"
