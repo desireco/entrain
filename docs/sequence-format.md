@@ -1,8 +1,126 @@
-# Sequence Format Spec (draft v0)
+# Native session format
 
-Status: **approved Oct 2026, build pending** — .sbg read-compatibility is the v0 frontend and stays permanently (additive-only evolution). This TOML schema is the native authoring format ("trains"), now decided. Companion: [migration-plan.md](migration-plan.md).
+## Implemented soundscape format, version 1
 
-Goal: a modern, typed replacement for SBaGen's `.sbg` format. TOML, human-writable, no reimplementation of `.sbg` syntax or semantics.
+Studio exports UTF-8 TOML with a `.entrain` suffix. The CLI also accepts
+`.toml`. The soundscape profile is complete for a single selected
+background with either a continuous bilateral cue or timed cue sections.
+
+```toml
+version = 1
+title = "Soft Rain with Bells"
+output = "flac"
+
+[[voice]]
+type = "soundscape"
+background = "rain"
+duration = "6m"
+cue = "bell"
+cue_volume_percent = 65
+cue_interval_ms = 850
+```
+
+Render with `entrain render file.entrain -o sound.flac`. The file also
+works with `entrain file.entrain`. The CLI `mix` shortcut accepts the
+same sound choices. `--dry-run` displays the composition before encoding.
+A native file can be rendered in any working directory using this version
+of the installed CLI; the sound sources are inside the binary.
+
+- `version = 1` and exactly one `[[voice]]` of type `"soundscape"` are required.
+- In the local CLI build, `background` accepts `"pink"`, `"white"`, `"rain"`,
+  `"wind"`, `"surf"` and `"rain-loop"`. Rain, wind and surf each generate an
+  evolving stereo bed for the full duration.
+  `"rain-loop"` reproduces the 60-second rain bed named `"rain"` in v0.2.0.
+  The same file naming `"rain"` therefore has different rain audio under
+  those two builds. Pink and white keep their original sound. `cue` is optional.
+  Omitting it or using `"none"` leaves the background alone outside any timed sections. Choose
+  `"bell"`, `"tone"`, or `"noise"` for alternating cues.
+- Optional `seed` selects a repeatable rain, wind or surf variation. Use
+  a whole number from 0 to 2147483647. Omitted or 0 selects the original
+  performance. A positive value requires a procedural background; it
+  does not alter the isolated cue recording.
+- Optional `cue_volume_percent` accepts a finite number from 0 to 200.
+  It scales the cue amplitude relative to its mastered level; 100 is the
+  default and 0 mutes only the cue.
+- Optional `cue_interval_ms` accepts a whole number from 350 to 2000.
+  It sets the time between one ear’s cue and the next ear’s cue. The
+  default is 625 ms. Each strike plays at its original pitch and speed.
+  Both controls also validate when the cue is off. The CLI equivalents
+  are `--cue-volume` and `--cue-interval-ms`.
+- `duration` accepts a positive duration string (`"45s"`, `"1h30m"`)
+  or a number of seconds. Duration is rounded down to the nearest whole
+  stereo frame; a session must include at least one frame. WAV and FLAC
+  preserve the frame count. MP3 carries padding to a codec frame boundary.
+- Optional top-level `output` accepts `"wav"` (default), `"flac"`, or
+  `"mp3"`. The CLI can select a format via a recognized `-o` suffix or
+  `-f`. Optional `title` labels the plan. Optional `sample_rate` is
+  44100 for this profile. Optional top-level `bit_depth` sets the default
+  for WAV/FLAC (16 or 24, default 16). `mp3_bitrate` sets the default
+  MP3 bitrate in kbps (default 320). Explicit CLI `-b` or `-q` settings
+  take precedence.
+- In a continuous mix, the bed and cue start at frame zero. Cue spacing is independent of the background.
+  One continuous, equal stereo gain taper covers the first and last half
+  second, shortened for shorter sessions. Monitoring volume stays local
+  to the playback device. The local Studio uses the same generators as this
+  build for rain, wind and surf. Public v0.2.0 uses its earlier rain loop.
+- Unknown fields, unsupported voice types, and unsupported versions are
+  rejected. `.sbg` files continue through the legacy renderer.
+
+## Timed cue sections
+
+Use the CLI to render a continuous background with cues that enter and leave
+at specific times. In this six-minute example the rain starts immediately.
+The bells begin on the left at 1:00 and build over 12 seconds. Their level
+starts falling at 4:30 and reaches silence at 5:00. Rain continues until
+6:00. [Complete editable session](../examples/rain-bell-timeline.entrain)
+
+```toml
+[[voice]]
+type = "soundscape"
+background = "rain"
+duration = "6m"
+
+[[voice.cue_section]]
+start = "1m"
+duration = "4m"
+cue = "bell"
+cue_interval_ms = 850
+cue_volume_percent = 65
+fade_in = "12s"
+fade_out = "30s"
+```
+
+- Each `[[voice.cue_section]]` requires an absolute `start`, a positive
+  `duration`, and a `cue` of `bell`, `tone`, or `noise`. Times accept duration
+  strings or numbers of seconds. List sections in time order, within the
+  parent duration. They may touch. A section begins at the first audio frame
+  at or after its start and ends just before the first frame at or after its
+  end.
+- Omit the parent's `cue` or set it to `"none"` when defining sections.
+  Each section inherits the parent's cue level and interval unless
+  overridden. The first strike in each section starts on the left.
+  Later strikes alternate at the section's interval through bed loop
+  boundaries. Gaps between sections play only the background.
+- `fade_in` and `fade_out` change only the cue gain, with a raised-cosine
+  curve. Fade-in defaults to zero. Fade-out defaults to a 10 ms release
+  or the remaining section length if shorter. Set either to zero for an
+  immediate edge. Their total must fit within the section. A section's
+  start, end and fades never reset or attenuate the underlying bed.
+- `--dry-run` lists section timings and settings. `-L` renders the requested
+  prefix and applies the usual output taper at its endpoint. Scheduled
+  fades retain their original timing. Explicit `--start` renders a true
+  source-position excerpt and preserves the full session’s endpoint taper.
+  See [the exact excerpt example](cli-guide.md#cut-an-exact-listening-excerpt).
+  Studio exports either a continuous cue or a schedule. Choose Timed sections
+  to add windows, audition a section and save the same TOML.
+
+## Proposed broader timeline format
+
+The following sections describe the broader authoring design tracked by
+issues #3 and #7. Sequential binaural voices, multi-entry crossfades, and
+parallel scheduling are outside the implemented soundscape profile.
+See [the CLI guide](cli-guide.md) for tested render commands and
+[the migration plan](migration-plan.md) for the engine roadmap.
 
 ## File
 
