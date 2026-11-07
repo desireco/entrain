@@ -17,12 +17,20 @@ type quantizer struct {
 	full float64
 }
 
-func newQuantizer(bits int) *quantizer {
-	return &quantizer{
+func newQuantizer(bits int, startFrame int64) *quantizer {
+	q := &quantizer{
 		rng:  rand.New(rand.NewPCG(0x456E747261696E, 1)), // "Entrain"
 		bits: bits,
 		full: math.Pow(2, float64(bits-1)) - 1, // signed full scale: 32767 / 8388607
 	}
+	// sample uses two random draws per channel. Advance the same stream so
+	// the first excerpt sample receives exactly the full render's dither.
+	for range startFrame {
+		for range 4 {
+			q.rng.Float64()
+		}
+	}
+	return q
 }
 
 // sample quantizes one float sample (nominal ±1) to the configured depth.
