@@ -1,0 +1,180 @@
+<section class="hero" id="top" data-od-id="hero">
+  <canvas id="hero-canvas" aria-hidden="true"></canvas>
+  <div class="container">
+    <div class="badges reveal" data-od-id="hero-badges">
+      <span class="badge">CLEAN-ROOM GO</span>
+      <span class="badge">MIT LICENSED</span>
+      <span class="badge"><span class="dot"></span>ACTIVELY DEVELOPED</span>
+    </div>
+    <h1 class="reveal" style="--d:80ms" data-od-id="hero-title">Render audio<br><em>on your machine.</em></h1>
+    <p class="lede reveal" style="--d:160ms" data-od-id="hero-lede">
+      The Entrain CLI turns a plain-text session into a stereo recording. Choose noise, rain, wind or surf, with optional cues that alternate between your ears.
+    </p>
+    <div class="cta-row reveal" style="--d:240ms">
+      <a class="btn-primary" href="#handbook">Get the local CLI</a>
+      <a class="link-quiet" href="#studio" id="cta-launch" data-od-id="cta-launch">Audition the sounds in Studio</a>
+      <a class="link-quiet" href="https://github.com/desireco/entrain/releases/tag/v0.2.0" target="_blank" rel="noopener">Published v0.2.0</a>
+    </div>
+    <div class="hero-terminal reveal" style="--d:320ms" data-od-id="hero-terminal">
+      <div class="term-head" aria-hidden="true"><i></i><i></i><i></i><span>entrain · zsh</span></div>
+      <div class="term-body">
+        <div><span class="p">$</span> entrain mix rain --cue bell --duration 6m -o rain-bell.wav</div>
+        <div class="out"><span class="hl">rain-bell.wav</span> · six minutes · stereo</div>
+      </div>
+    </div>
+  </div>
+  <div class="ticker" data-od-id="band-ticker" aria-hidden="true">
+    <div class="ticker-track" id="ticker-track">
+      <div class="ticker-seq">
+        <span><b>DELTA</b> BELOW 4 HZ</span><span><b>THETA</b> 4 TO BELOW 8 HZ</span><span><b>ALPHA</b> 8–13 HZ</span><span><b>BETA</b> 14–30 HZ</span><span><b>GAMMA</b> ABOVE 30 HZ</span>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="section" id="sessions" data-od-id="sessions">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Sessions</span>
+      <h2>Create a session.</h2>
+      <p class="section-sub">Choose a background, set the length, and add optional alternating cues. Save the editable session and render it on your machine.</p>
+      <div class="cta-row"><a class="btn-primary" href="session-creator/">Create a session</a>
+        <a class="link-quiet" href="#session-examples">Browse examples</a></div>
+    </div>
+    <div id="session-examples" class="examples-list">
+      <h3>Example sessions</h3>
+      <div class="lib-row">
+        <a class="lib-chip" href="examples/evolving-rain.entrain" download>Rain <small>Continuous background</small></a>
+        <a class="lib-chip" href="examples/wind-bells.entrain" download>Wind <small>With bells</small></a>
+        <a class="lib-chip" href="examples/surf-bells.entrain" download>Surf <small>With bells</small></a>
+        <a class="lib-chip" href="examples/rain-bell-timeline.entrain" download>Rain <small>Timed bell sections</small></a>
+      </div>
+    </div>
+    <h3>Inside a binaural score</h3>
+    <div class="anatomy">
+      <div class="code-card reveal" data-od-id="session-code">
+        <div class="term-head" aria-hidden="true"><i></i><i></i><i></i><span>focus-40-pink.sbg</span></div>
+        <div class="term-body">
+          <div class="cm">## One-hour focus: 40 Hz gamma over a pink-noise bed</div>
+          <div class="ts">all-off:</div>
+          <div class="ts">-</div>
+          <div class="tline">focus-40:</div>
+          <div class="tline">pink/20&nbsp;&nbsp;180+40/30</div>
+          <div>&nbsp;</div>
+          <div class="ts">0:00:00&nbsp;&nbsp;focus-40</div>
+          <div class="ts">1:00:00&nbsp;&nbsp;all-off</div>
+        </div>
+        <div class="timeline-card" data-od-id="session-timeline">
+          <div class="timeline-bar" aria-hidden="true"><div class="seg-on"></div><div class="seg-off"></div></div>
+          <div class="timeline-lbl"><span>0:00:00 · focus in, 30 s changeover crossfade</span><span>1:00:00 · all-off</span></div>
+        </div>
+      </div>
+      <div class="anatomy-notes reveal" style="--d:120ms" data-od-id="session-notes">
+        <div class="anatomy-note">
+          <h3><span class="mono">01</span>Tone-set line</h3>
+          <p><span class="mono" style="color:var(--fg-2)">carrier+beat/amplitude</span> — amplitudes on a 0–100 scale,
+          keep the sum under 100. The engine pairs L/R carriers for a true binaural beat.</p>
+        </div>
+        <div class="anatomy-note">
+          <h3><span class="mono">02</span>Schedule lines</h3>
+          <p><span class="mono" style="color:var(--fg-2)">time name</span> — absolute, <span class="mono" style="color:var(--fg-2)">NOW</span>,
+          or <span class="mono" style="color:var(--fg-2)">+mm:ss</span> relative.</p>
+        </div>
+        <div class="anatomy-note">
+          <h3><span class="mono">03</span>Changeovers</h3>
+          <p>Crossfades happen automatically — 30 seconds, equal-power, with true tone continuity across segments.</p>
+        </div>
+        <div class="anatomy-note">
+          <h3><span class="mono">04</span>Session library</h3>
+          <p>A small, growing set ships in the repo under <span class="mono" style="color:var(--fg-2)">examples/</span> —
+          use as-is or edit in any text editor. Copy one, tweak the numbers, make it yours.</p>
+          <div class="lib-row" data-od-id="session-library">
+            <a class="lib-chip" href="https://github.com/desireco/entrain/blob/main/examples/focus-40-pink.sbg" target="_blank" rel="noopener">focus-40-pink <small>40 Hz γ over pink</small></a>
+            <a class="lib-chip" href="https://github.com/desireco/entrain/blob/main/examples/meditate-alpha.sbg" target="_blank" rel="noopener">meditate-alpha <small>10 Hz α · soft pink</small></a>
+            <a class="lib-chip" href="https://github.com/desireco/entrain/blob/main/examples/sleep-delta.sbg" target="_blank" rel="noopener">sleep-delta <small>3 Hz δ · brown</small></a>
+            <a class="lib-chip" href="https://github.com/desireco/entrain/blob/main/examples/pink-bed.sbg" target="_blank" rel="noopener">pink-bed <small>an hour of pure noise</small></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="section" id="engine" data-od-id="engine">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Inside the engine</span>
+      <h2>Pure Go in the core pipeline.</h2>
+      <p class="section-sub">Packages you can lift, a binary you can ship.</p>
+    </div>
+    <div class="spec-list reveal" style="--d:100ms" data-od-id="engine-features">
+      <div class="spec-row" data-od-id="feature-synth-core">
+        <span class="spec-num">01</span>
+        <span class="spec-name">Synth core</span>
+        <p class="spec-desc">Phase-continuous sine oscillators, binaural L/R pairing, equal-power crossfades and amplitude
+        glide envelopes — retuning never clicks. Float64 end-to-end.</p>
+        <span></span>
+      </div>
+      <div class="spec-row" data-od-id="feature-sbg-reader">
+        <span class="spec-num">02</span>
+        <span class="spec-name">.sbg reader + planner</span>
+        <p class="spec-desc">Tone-sets, absolute / <span class="mono">NOW</span> / relative times, nested blocks — and sbagen's
+        30-second changeover crossfades with true tone continuity across segments.</p>
+        <span></span>
+      </div>
+      <div class="spec-row" data-od-id="feature-codec-stack">
+        <span class="spec-num">03</span>
+        <span class="spec-name">Codec stack</span>
+        <p class="spec-desc">WAV (go-audio), FLAC (mewkiz, bit-exact) and MP3 (pure-Go Shine, level-matched). Shared
+        clip → TPDF-dither → quantize stage, 16/24-bit, deterministic.</p>
+        <span></span>
+      </div>
+      <div class="spec-row" data-od-id="feature-noise-dsp">
+        <span class="spec-num">04</span>
+        <span class="spec-name">Noise DSP</span>
+        <p class="spec-desc">White, pink and brown noise with correct spectral slopes, decorrelated stereo and calibrated
+        bed loudness — plus FFT-shaped 1/f<sup>α</sup> slopes in <span class="mono">noisemaker</span>.</p>
+        <span></span>
+      </div>
+      <div class="spec-row" data-od-id="feature-beatscope">
+        <span class="spec-num">05</span>
+        <span class="spec-name">beatscope</span>
+        <p class="spec-desc">STFT carrier/beat detection with L/R pairing and window-voted confidence. Cross-engine
+        validated against sbagen: the analyzer detected matching beat frequencies in five reference recordings.</p>
+        <a class="spec-badge" href="https://github.com/desireco/entrain/blob/main/docs/validation.md" target="_blank" rel="noopener">5/5 MATCH</a>
+      </div>
+      <div class="spec-row" data-od-id="feature-mit">
+        <span class="spec-num">06</span>
+        <span class="spec-name">MIT licensed</span>
+        <p class="spec-desc">No SBaGen code anywhere — derived from public DSP technique and behavioral comparison.
+        Embed it anywhere, including commercial use.</p>
+        <span></span>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="section" id="faq" data-od-id="faq">
+  <div class="container faq-grid">
+    <div class="section-head reveal">
+      <span class="eyebrow">Questions</span>
+      <h2>Asked, answered.</h2>
+    </div>
+    <div class="faq-list reveal" style="--d:100ms" data-od-id="faq-list">
+      <div class="faq-item" data-od-id="faq-rewrite">
+        <h3>Why a rewrite?</h3>
+        <p>SBaGen (Jim Peters) is wonderful 2000s software — powerful, battle-tested, and GPLv2 with a bespoke C
+        codebase. Entrain keeps the functionality and modernizes everything around it: permissive license, static
+        binaries, modern formats. The full rationale is in the
+        <a href="https://github.com/desireco/entrain/blob/main/docs/migration-plan.md" target="_blank" rel="noopener">migration plan</a>.</p>
+      </div>
+      <div class="faq-item" data-od-id="faq-affiliation">
+        <h3>Is Entrain affiliated with SBaGen?</h3>
+        <p>No. Entrain is an independent clean-room reimplementation — no SBaGen code was read or copied, and it is not
+        endorsed by Jim Peters. The original tool and its forks have their own
+        <a href="https://desireco.github.io/sbagen/" target="_blank" rel="noopener">SBaGen page</a>.</p>
+      </div>
+      <div class="faq-item" data-od-id="faq-roadmap">
+        <h3>How do I save a Studio mix?</h3>
+        <p>Download the <code>.entrain</code> session in the Studio and run the command shown beside it with the local executable. This build generates evolving rain, wind and surf. To reproduce v0.2.0 rain, use <code>./entrain mix rain-loop</code>.</p>
+      </div>
+    </div>
+  </div>
+</section>

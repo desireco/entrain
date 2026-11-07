@@ -1,0 +1,14 @@
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Entrain",
+  "url": "https://entrain.cc/",
+  "image": "https://entrain.cc/og.png",
+  "description": "A local audio renderer for soundscapes and binaural sessions, with a browser-based session builder and WAV, FLAC and MP3 export.",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Linux, macOS, Windows",
+  "license": "https://opensource.org/licenses/MIT",
+  "author": { "@type": "Organization", "name": "Desireco", "url": "https://github.com/desireco" },
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "sameAs": ["https://github.com/desireco/entrain"]
+}
