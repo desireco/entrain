@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cmp"
 	"errors"
 	"flag"
 	"fmt"
@@ -227,7 +228,7 @@ func renderSoundscape(s train.Session, cfg mixOutput, stem, source string, stdou
 		pcm, err = s.PCMFor(duration)
 	}
 	if err == nil {
-		err = writeMix(cfg, pcm)
+		err = writeMix(cfg, pcm, cmp.Or(s.Title, codec.FileStem(cfg.Path)))
 	}
 	if err != nil {
 		fmt.Fprintln(stderr, "entrain:", err)
@@ -237,13 +238,14 @@ func renderSoundscape(s train.Session, cfg mixOutput, stem, source string, stdou
 	return 0
 }
 
-func writeMix(cfg mixOutput, pcm codec.StereoPCM) error {
+func writeMix(cfg mixOutput, pcm codec.StereoPCM, title string) error {
 	f, err := os.CreateTemp(filepath.Dir(cfg.Path), ".entrain-mix-*")
 	if err != nil {
 		return err
 	}
 	defer os.Remove(f.Name())
-	err = codec.WritePCM(f, cfg.Format, audio.Rate, cfg.Bits, cfg.Bitrate, pcm)
+	err = codec.WritePCM(f, cfg.Format, audio.Rate, cfg.Bits, cfg.Bitrate, pcm,
+		codec.Metadata{Title: title})
 	closeErr := f.Close()
 	if err != nil {
 		return err

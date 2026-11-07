@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/desireco/entrain/internal/dsp"
@@ -15,6 +14,16 @@ func runCLI(t *testing.T, args ...string) (int, string, string) {
 	var out, errb bytes.Buffer
 	code := run(args, &out, &errb)
 	return code, out.String(), errb.String()
+}
+
+// stripID3 skips an optional ID3v2 tag so signature checks see the
+// MPEG stream, as players do.
+func stripID3(b []byte) []byte {
+	if len(b) >= 10 && string(b[:3]) == "ID3" {
+		size := int(b[6]&0x7f)<<21 + int(b[7]&0x7f)<<14 + int(b[8]&0x7f)<<7 + int(b[9]&0x7f)
+		return b[10+size:]
+	}
+	return b
 }
 
 func TestNoisemakerRendersExactDuration(t *testing.T) {
@@ -60,7 +69,7 @@ func TestNoisemakerFormatsAndDurations(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if !strings.HasPrefix(string(b), tc.want) {
+		if !bytes.HasPrefix(stripID3(b), []byte(tc.want)) {
 			t.Errorf("%v: signature %q", tc.args, b[:4])
 		}
 	}

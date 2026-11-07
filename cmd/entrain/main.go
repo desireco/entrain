@@ -224,7 +224,7 @@ func cmdRender(args []string, stdout, stderr io.Writer) int {
 	}
 
 	buf := plan.Render(*rate)
-	if err := encode(path, *outPath, *format, *rate, *bitDepth, *bitrate, buf); err != nil {
+	if err := encode(path, *outPath, *format, *rate, *bitDepth, *bitrate, buf, ""); err != nil {
 		fmt.Fprintf(stderr, "entrain: %v\n", err)
 		return 1
 	}
@@ -254,8 +254,9 @@ func checkOutput(source, output string) error {
 	return nil
 }
 
-// encode writes the rendered buffer to path in the given format.
-func encode(source, path, format string, rate, bitDepth, bitrate int, buf []float64) error {
+// encode writes the rendered buffer to path in the given format. An
+// empty title tags MP3 renders with the output file stem.
+func encode(source, path, format string, rate, bitDepth, bitrate int, buf []float64, title string) error {
 	// Open without truncating. Recheck the chosen file itself before writing
 	// in case a symlink or hard link changed while a long plan rendered.
 	input, err := os.Stat(source)
@@ -289,7 +290,10 @@ func encode(source, path, format string, rate, bitDepth, bitrate int, buf []floa
 		// WriteFlac's encoder closes the file itself (StreamInfo patch).
 		err = codec.WriteFlac(f, rate, bitDepth, buf)
 	case "mp3":
-		err = codec.WriteMp3(f, rate, bitrate, buf)
+		if title == "" {
+			title = codec.FileStem(path)
+		}
+		err = codec.WriteMp3(f, rate, bitrate, buf, codec.Metadata{Title: title})
 		if err == nil {
 			err = f.Close()
 		} else {

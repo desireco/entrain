@@ -64,7 +64,7 @@ func TestSaveSessionRoundTrip(t *testing.T) {
 			t.Fatal(err)
 		}
 		b, err := os.ReadFile(outname)
-		if err != nil || !bytes.Equal(a, b) {
+		if err != nil || !bytes.Equal(stripID3(a), stripID3(b)) {
 			t.Fatalf("%s: direct and saved renders differ", tc.name)
 		}
 	}

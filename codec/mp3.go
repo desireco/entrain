@@ -25,17 +25,21 @@ const shineGainComp = 1.0 / 1.1233
 // the pure-Go Shine encoder. Sample rates are the MPEG-1 set
 // (32000/44100/48000). Samples pass the shared clip → TPDF-dither →
 // quantize stage (after Shine's gain compensation); output is
-// deterministic for identical input.
-func WriteMp3(w io.Writer, sampleRate, bitrate int, x []float64) error {
+// deterministic for identical input. The metadata precedes the audio
+// as an ID3v2.3 tag (title from the session, encoder named).
+func WriteMp3(w io.Writer, sampleRate, bitrate int, x []float64, meta Metadata) error {
 	if len(x)%2 != 0 {
 		return fmt.Errorf("codec: interleaved stereo buffer has odd length %d", len(x))
 	}
-	return writeMp3(w, sampleRate, bitrate, fromSamples(x))
+	return writeMp3(w, sampleRate, bitrate, fromSamples(x), meta)
 }
 
-func writeMp3(w io.Writer, sampleRate, bitrate int, pcm StereoPCM) error {
+func writeMp3(w io.Writer, sampleRate, bitrate int, pcm StereoPCM, meta Metadata) error {
 	if err := ValidateMp3(sampleRate, bitrate); err != nil {
 		return err
+	}
+	if _, err := w.Write(id3v2Tag(meta)); err != nil {
+		return fmt.Errorf("codec: mp3 write: %w", err)
 	}
 	q := newQuantizer(16, pcm.StartFrame) // MP3's internal fixed point is depth-independent
 	enc := mp3.NewEncoder(sampleRate, 2)

@@ -63,7 +63,7 @@ func TestNativeAndShortcutMatch(t *testing.T) {
 		if format == "mp3" {
 			prefix = []byte{0xff, 0xfb}
 		}
-		if !bytes.HasPrefix(data, prefix) {
+		if !bytes.HasPrefix(stripID3(data), prefix) {
 			t.Fatalf("incorrect %s data", format)
 		}
 	}
@@ -148,7 +148,7 @@ func TestCueLevelAndIntervalCLI(t *testing.T) {
 	for _, ext := range []string{"wav", "flac", "mp3"} {
 		a := render("render", "custom.entrain", "-o", "native."+ext)
 		b := render("mix", "rain", "--cue", "bell", "--cue-volume", "37.5", "--cue-interval-ms", "733", "--duration", "1.375s", "-o", "mix."+ext)
-		if !bytes.Equal(a, b) {
+		if !bytes.Equal(stripID3(a), stripID3(b)) {
 			t.Fatalf("native and shortcut differ for %s", ext)
 		}
 	}

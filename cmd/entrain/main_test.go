@@ -19,6 +19,17 @@ func runCLI(t *testing.T, args ...string) (int, string, string) {
 	return code, out.String(), errb.String()
 }
 
+// stripID3 skips an optional ID3v2 tag so magic-byte checks and audio
+// comparisons see the MPEG stream, exactly as players do. MP3 renders
+// carry a tag whose title differs by session name and output stem.
+func stripID3(b []byte) []byte {
+	if len(b) >= 10 && string(b[:3]) == "ID3" {
+		size := int(b[6]&0x7f)<<21 + int(b[7]&0x7f)<<14 + int(b[8]&0x7f)<<7 + int(b[9]&0x7f)
+		return b[10+size:]
+	}
+	return b
+}
+
 func TestVersion(t *testing.T) {
 	code, out, _ := runCLI(t, "version")
 	if code != 0 || !strings.HasPrefix(out, "entrain ") {
@@ -131,8 +142,8 @@ func TestRenderFormats(t *testing.T) {
 		if !strings.Contains(stdout, "wrote "+out) || !strings.Contains(stdout, tc.format) {
 			t.Errorf("%s: summary %q", tc.format, stdout)
 		}
-		if !strings.HasPrefix(string(raw), tc.want) {
-			t.Errorf("%s: signature %q, want prefix %q", tc.format, raw[:4], tc.want)
+		if !bytes.HasPrefix(stripID3(raw), []byte(tc.want)) {
+			t.Errorf("%s: signature %q, want prefix %q", tc.format, stripID3(raw)[:4], tc.want)
 		}
 	}
 

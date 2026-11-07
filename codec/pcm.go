@@ -24,8 +24,9 @@ func fromSamples(x []float64) StereoPCM {
 }
 
 // WritePCM encodes a stereo stream using the same encoders as sequence renders.
-// The FLAC encoder closes w when it implements io.Closer.
-func WritePCM(w io.WriteSeeker, format string, rate, bits, bitrate int, pcm StereoPCM) error {
+// The FLAC encoder closes w when it implements io.Closer. Metadata applies
+// where the container supports tags (MP3's ID3v2); other formats ignore it.
+func WritePCM(w io.WriteSeeker, format string, rate, bits, bitrate int, pcm StereoPCM, meta Metadata) error {
 	if pcm.Frames < 0 || pcm.StartFrame < 0 || pcm.Next == nil {
 		return fmt.Errorf("invalid stereo PCM source")
 	}
@@ -42,7 +43,7 @@ func WritePCM(w io.WriteSeeker, format string, rate, bits, bitrate int, pcm Ster
 		}
 		return writeFlac(w, rate, bits, pcm)
 	case "mp3":
-		return writeMp3(w, rate, bitrate, pcm)
+		return writeMp3(w, rate, bitrate, pcm, meta)
 	default:
 		return fmt.Errorf("unknown output format %q", format)
 	}

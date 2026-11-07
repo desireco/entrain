@@ -161,7 +161,7 @@ func write(path, format string, rate, bits, bitrate int, buf []float64) error {
 	case "flac":
 		err = codec.WriteFlac(f, rate, bits, buf)
 	case "mp3":
-		err = codec.WriteMp3(f, rate, bitrate, buf)
+		err = codec.WriteMp3(f, rate, bitrate, buf, codec.Metadata{Title: codec.FileStem(path)})
 		if err == nil {
 			err = f.Close()
 		} else {
