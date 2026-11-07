@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <base href="../">
 <title>Studio · Entrain</title>
-<meta name="description" content="Audition five backgrounds, mix alternating cues, and try binaural sessions.">
+<meta name="description" content="Audition five backgrounds, mix alternating cue sections, and download a native .entrain session to render locally.">
 <meta name="theme-color" content="#f2f0e8">
 <link rel="canonical" href="https://entrain.cc/studio/">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -14,7 +14,7 @@
 <!-- Social cards: X reads twitter:*, Facebook and LinkedIn read og:* -->
 <meta property="og:site_name" content="Entrain">
 <meta property="og:title" content="Studio · Entrain">
-<meta property="og:description" content="Audition five backgrounds, mix alternating cues, and try binaural sessions.">
+<meta property="og:description" content="Audition five backgrounds, mix alternating cue sections, and download a native .entrain session to render locally.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://entrain.cc/studio/">
 <meta property="og:image" content="https://entrain.cc/og.png">
@@ -26,7 +26,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@builtbydakic">
 <meta name="twitter:title" content="Studio · Entrain">
-<meta name="twitter:description" content="Audition five backgrounds, mix alternating cues, and try binaural sessions.">
+<meta name="twitter:description" content="Audition five backgrounds, mix alternating cue sections, and download a native .entrain session to render locally.">
 <meta name="twitter:image" content="https://entrain.cc/og.png">
 <meta name="twitter:image:alt" content="Entrain cover with audio waveform and WAV, FLAC and MP3 formats.">
 
@@ -48,7 +48,6 @@
     </a>
     <nav class="nav-links" aria-label="Primary"><a href="./">Home</a>
       <a href="studio/" class="active" aria-current="page">Studio</a>
-      <a href="session-creator/">Session Creator</a>
       <a href="listening-guide/">Listening Guide</a>
       <a href="handbook/">Handbook</a></nav>
     <a class="nav-gh" href="https://github.com/desireco/entrain" target="_blank" rel="noopener" aria-label="GitHub — desireco/entrain">
@@ -64,13 +63,9 @@
     <div class="section-head reveal">
       <span class="eyebrow" id="studio-eyebrow">Studio</span>
       <h1 id="studio-heading">Find your <em>background.</em></h1>
-      <p class="section-sub" id="studio-intro">Audition the sounds of the Entrain CLI, or <a href="session-creator/" class="guide-link">open the Session Creator</a> to build a render offline.</p>
+      <p class="section-sub" id="studio-intro">Audition the sounds of the Entrain CLI, shape the cue sections, and download the .entrain file to render with the CLI.</p>
     </div>
-    <div class="studio reveal" data-od-id="studio-panel" data-creator="false">
-      <div class="handoff-chip" id="handoff-chip" hidden>
-        <span id="handoff-text"></span>
-        <button type="button" id="handoff-reset">Start over</button>
-      </div>
+    <div class="studio reveal" data-od-id="studio-panel">
       <div class="library-pane">
         <div class="library-head"><h3 id="background-label">Background</h3><a href="studio/#session-source" class="jump-source">View .entrain source ↓</a></div>
         <div class="bed-picker" role="radiogroup" aria-labelledby="background-label">
@@ -235,13 +230,6 @@
             <span class="chip-label">Render with the local CLI</span><code id="mix-command"></code>
             <p class="source-feedback cli-download"><a href="local-cli/entrain-linux-amd64" download="entrain">Linux x86-64 CLI</a> · <a href="handbook/">Build for another platform</a></p>
           </div>
-          <div class="creator-link" id="creator-link">
-            <h3>Make this a session</h3>
-            <p>Keep this sound and duration. Add cue sections or choose a repeatable variation in the Session Creator.</p>
-            <a class="creator-button" href="session-creator/">Open Session Creator <span aria-hidden="true">→</span></a>
-          </div>
-          <a class="studio-return" href="studio/">Audition more backgrounds in the Studio <span aria-hidden="true">→</span></a>
-
         </div>
       </div>
     </div>

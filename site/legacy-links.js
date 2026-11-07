@@ -2,8 +2,8 @@
 (function () {
   const routes = {
     '#studio': 'studio/', '#listening-guide': 'listening-guide/',
-    '#handbook': 'handbook/', '#session-creator': 'session-creator/',
-    '#session-source': 'session-creator/#session-source'
+    '#handbook': 'handbook/', '#session-creator': 'studio/',
+    '#session-source': 'studio/#session-source'
   };
   function followBookmark() {
     const route = routes[location.hash];

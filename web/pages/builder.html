@@ -1,15 +1,11 @@
 <section class="section" id="studio" data-od-id="studio">
   <div class="container">
     <div class="section-head reveal">
-      <span class="eyebrow" id="studio-eyebrow">{{BUILDER_NAME}}</span>
-      <h1 id="studio-heading">{{BUILDER_TITLE}}</h1>
-      <p class="section-sub" id="studio-intro">{{BUILDER_INTRO}}</p>
+      <span class="eyebrow" id="studio-eyebrow">Studio</span>
+      <h1 id="studio-heading">Find your <em>background.</em></h1>
+      <p class="section-sub" id="studio-intro">Audition the sounds of the Entrain CLI, shape the cue sections, and download the .entrain file to render with the CLI.</p>
     </div>
-    <div class="studio reveal" data-od-id="studio-panel" data-creator="{{CREATOR}}">
-      <div class="handoff-chip" id="handoff-chip" hidden>
-        <span id="handoff-text"></span>
-        <button type="button" id="handoff-reset">Start over</button>
-      </div>
+    <div class="studio reveal" data-od-id="studio-panel">
       <div class="library-pane">
         <div class="library-head"><h3 id="background-label">Background</h3><a href="#session-source" class="jump-source">View .entrain source ↓</a></div>
         <div class="bed-picker" role="radiogroup" aria-labelledby="background-label">
@@ -174,13 +170,6 @@
             <span class="chip-label">Render with the local CLI</span><code id="mix-command"></code>
             <p class="source-feedback cli-download"><a href="local-cli/entrain-linux-amd64" download="entrain">Linux x86-64 CLI</a> · <a href="#handbook">Build for another platform</a></p>
           </div>
-          <div class="creator-link" id="creator-link">
-            <h3>Make this a session</h3>
-            <p>Keep this sound and duration. Add cue sections or choose a repeatable variation in the Session Creator.</p>
-            <a class="creator-button" href="session-creator/">Open Session Creator <span aria-hidden="true">→</span></a>
-          </div>
-          <a class="studio-return" href="studio/">Audition more backgrounds in the Studio <span aria-hidden="true">→</span></a>
-
         </div>
       </div>
     </div>

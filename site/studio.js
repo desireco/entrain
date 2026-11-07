@@ -25,16 +25,7 @@
   var BACKGROUNDS = { pink: 'Pink noise', white: 'White noise', rain: 'Soft rain', wind: 'Wind', surf: 'Ocean surf' };
   var generatedBeds = new Set(['rain', 'wind', 'surf']);
   var cueNames = { off: 'Off', tone: 'Tone', bell: 'Bell', noise: 'Noise', sections: 'Timed sections' };
-  var creatorPage = document.body.dataset.page === 'session-creator';
   var current = localStorage.getItem('entrain.session');
-  var handoff = null;
-  if (creatorPage && SESSIONS[current]) {
-    // A binaural audition continues as its bed; brown has no preview bed.
-    handoff = {preset: current, brown: SESSIONS[current].bed === 'brown'};
-    var carried = localStorage.getItem('entrain.background');
-    current = Object.hasOwn(BACKGROUNDS, carried) ? carried : 'pink';
-  }
-  var arriving = !!localStorage.getItem('entrain.session');
   if (!Object.hasOwn(SESSIONS, current) && !Object.hasOwn(BACKGROUNDS, current)) current = 'pink';
   var lastBackground = Object.hasOwn(BACKGROUNDS, current) ? current : localStorage.getItem('entrain.background');
   if (!Object.hasOwn(BACKGROUNDS, lastBackground)) lastBackground = 'pink';
@@ -615,7 +606,7 @@
           'fade_in = "' + time(section.fadeIn) + '"', 'fade_out = "' + time(section.fadeOut) + '"');
       });
     } else if (cue !== 'off' && cue !== 'sections') lines.push('cue = "' + cue + '"', 'cue_volume_percent = ' + cueVolume, 'cue_interval_ms = ' + cueInterval);
-    $('#mix-source').rows = Math.min(creatorPage ? 24 : 18, lines.length + 1);
+    $('#mix-source').rows = Math.min(24, lines.length + 1);
     sessionDocument.update(valid ? lines.join('\n') + '\n' : '', valid);
     $('#source-name').textContent = filename;
     $('#mix-command').textContent = sessionDocument.draft ? './entrain render ' + filename :
@@ -641,13 +632,12 @@
       lastBackground = current;
       localStorage.setItem('entrain.background', current);
     }
-    $('.source-caption').textContent = background ? (creatorPage ?
-      'This is the score of your session. Edit it directly, or shape it with the controls.'
-      : 'Edit the score and apply it to the preview, or download it for the CLI.')
+    $('.source-caption').textContent = background ?
+      'This is the score of your session. Edit it directly, shape it with the controls, or download it for the CLI.'
       : 'While you audition this binaural preset, the editor keeps your ' + BACKGROUNDS[lastBackground].toLowerCase() + ' score. Apply the score to audition it.';
     $('#excerpt-panel').hidden = !background;
     $('#seed-field').hidden = !background || !generatedBeds.has(current);
-    if (creatorPage && !$('#seed-field').hidden) $('#seed-field').open = true;
+    if (!$('#seed-field').hidden) $('#seed-field').open = true;
     $('#section-editor').hidden = !background || cue !== 'sections';
     $('#duration-field').hidden = !background;
     $('#cue-shape').disabled = !background;
@@ -800,11 +790,9 @@
     a.remove();
     setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
     $('#source-feedback').textContent = 'Download started for ' + a.download + '.';
-    if (creatorPage) {
-      var strip = $('#download-confirm');
-      strip.innerHTML = '<strong>' + a.download + ' saved.</strong> Render it: <code>' + $('#mix-command').textContent + '</code>';
-      strip.hidden = false;
-    }
+    var strip = $('#download-confirm');
+    strip.innerHTML = '<strong>' + a.download + ' saved.</strong> Render it: <code>' + $('#mix-command').textContent + '</code>';
+    strip.hidden = false;
   });
   function updateStatus(message) {
     var playing = engine.playing, background = !!BACKGROUNDS[current];
@@ -836,23 +824,6 @@
   });
   var savedVol = localStorage.getItem('entrain.vol');
   if (savedVol !== null) { vol.value = savedVol; $('#vol-read').textContent = savedVol + '%'; }
-  var handoffChip = $('#handoff-chip');
-  if (creatorPage && arriving && handoffChip) {
-    $('#handoff-text').innerHTML = handoff && handoff.brown ?
-      'Continuing from the Studio — <strong>sleep-delta</strong> renders with brown noise offline, so the preview uses pink.' :
-      handoff ? 'Continuing from the Studio — the bed behind <strong>' + handoff.preset + '</strong>.' :
-      'Continuing <strong>' + BACKGROUNDS[current] + '</strong> from the Studio.';
-    handoffChip.hidden = false;
-    $('#handoff-reset').addEventListener('click', function () {
-      current = 'pink';
-      $('#mix-duration').value = '6m';
-      lengthChoice = '6m';
-      syncDuration();
-      $('#mix-duration').dispatchEvent(new Event('input'));
-      handoffChip.hidden = true;
-      syncSessionUI();
-    });
-  }
   setInterval(function () {
     var track = document.querySelector('#section-timeline .tl-track');
     if (track) {

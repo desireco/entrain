@@ -9,13 +9,12 @@ ROOT = Path(__file__).resolve().parents[1]
 PAGES = ROOT / "web/pages"
 SITE = ROOT / "site"
 NAV = {
-    "home": "Home", "studio": "Studio", "session-creator": "Session Creator",
+    "home": "Home", "studio": "Studio",
     "listening-guide": "Listening Guide", "handbook": "Handbook",
 }
 DESC = {
     "home": "Binaural beats that guide your brain toward sleep, calm and focus — write sessions as plain text and render them to stereo on your machine with the Entrain CLI.",
-    "studio": "Audition five backgrounds, mix alternating cues, and try binaural sessions.",
-    "session-creator": "Create, edit, preview and download a native .entrain session to render locally.",
+    "studio": "Audition five backgrounds, mix alternating cue sections, and download a native .entrain session to render locally.",
     "listening-guide": "Compare the backgrounds, stereo cues and binaural presets by ear.",
     "handbook": "Get the Entrain CLI and render an editable session to WAV, FLAC or MP3.",
 }
@@ -35,18 +34,9 @@ def link(fragment, page):
 
 
 def render(page):
-    builder = page in ("studio", "session-creator")
+    builder = page == "studio"
     partial = "builder" if builder else page
     content = (PAGES / (partial + ".html")).read_text()
-    if builder:
-        creator = page == "session-creator"
-        intro = ("Choose a sound, shape the cue sections, and download the .entrain file to render with the CLI."
-                 if creator else 'Audition the sounds of the Entrain CLI, or <a href="session-creator/" '
-                 'class="guide-link">open the Session Creator</a> to build a render offline.')
-        view = {"BUILDER_NAME": NAV[page], "CREATOR": str(creator).lower(),
-                "BUILDER_TITLE": "Create a session." if creator else "Find your <em>background.</em>",
-                "BUILDER_INTRO": intro}
-        content = re.sub(r"{{(\w+)}}", lambda m: view[m[1]], content)
     scripts = ["session-editor", "session-document", "soundscapes/player", "studio"] if builder else {
         "home": ["home"], "handbook": ["handbook"], "listening-guide": []
     }[page]

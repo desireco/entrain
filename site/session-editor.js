@@ -26,9 +26,8 @@
     return ms + 'ms';
   }
   const keys = ['start','duration','cue','volume','interval','fadeIn','fadeOut'];
-  // The proportional timeline is a creator-only visual; the Studio keeps its player focus.
-  const timelineTrack = () => document.body.dataset.page === 'session-creator' ?
-    document.querySelector('#section-timeline .tl-track') : null;
+  // The proportional timeline places each cue section along the session length.
+  const timelineTrack = () => document.querySelector('#section-timeline .tl-track');
   class Sections {
     constructor(change, audition, duration) {
       this.change = change;
