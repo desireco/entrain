@@ -1,12 +1,12 @@
 // Command entrain renders binaural-beat and noise sessions to audio files.
 //
-// v0 reads SBaGen .sbg sequence files (clean-room, read-only). A bare
-// session name resolves to <name>.sbg in the working directory, so
-// `entrain focus-10` renders focus-10.sbg. TOML "trains" remain the
-// planned native format for post-v0.1.
+// Native .entrain and .toml sessions render Studio soundscapes. Legacy
+// .sbg files use the clean-room SBaGen reader; a bare name still resolves
+// to <name>.sbg in the working directory.
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -15,20 +15,24 @@ import (
 	"time"
 
 	"github.com/desireco/entrain/codec"
+	"github.com/desireco/entrain/internal/buildversion"
 	"github.com/desireco/entrain/seq"
 )
 
-var version = "0.0.0-dev"
+var version string
 
 const usage = `entrain — binaural beat + noise session renderer (EntrainSpace)
 
 Usage:
 
+  entrain render file.entrain      render a native Studio soundscape (TOML)
+  entrain mix pink|white|rain|wind|surf|rain-loop [--cue bell|tone|noise] [--duration 6m] [-o file]
+  entrain mix rain --save-session file.entrain   save editable source without rendering
   entrain <session> [flags]        render <name>.sbg (shorthand)
   entrain render <session> [flags] render a sequence file
   entrain version
 
-A session is a .sbg file path or a bare name resolved as <name>.sbg.
+Native sessions use .entrain or .toml. Legacy .sbg paths and bare names resolve as before.
 
 Flags:
 
@@ -36,7 +40,8 @@ Flags:
   -b bits      bit depth for wav/flac: 16 (default) or 24 (lossless masters)
   -q kbps      MP3 bitrate, MPEG-1 Layer III 32–320 (default 320)
   -o file      output path (default: <session>.<format>)
-  -L h:mm[:ss] limit the output length (overrides a -L in the file)
+  -L length    limit output length (native: 30s or h:mm[:ss]; legacy: h:mm[:ss])
+  --start time native exact excerpt start (e.g. 4m20s); -L sets its length
   -r rate      sample rate, 44100 or 48000 (default 44100)
   --dry-run    print the render plan (timeline + lint warnings) and exit
 
@@ -55,13 +60,21 @@ func run(args []string, stdout, stderr io.Writer) int {
 	}
 	switch args[0] {
 	case "version":
-		fmt.Fprintln(stdout, "entrain", version)
+		fmt.Fprintln(stdout, "entrain", buildversion.Resolve(version))
 		return 0
 	case "help", "-h", "--help":
 		fmt.Fprintln(stdout, usage)
 		return 0
 	case "render":
 		return cmdRender(args[1:], stdout, stderr)
+	case "mix":
+		// Preserve the original shorthand for an existing session named mix.sbg.
+		if len(args) == 1 || strings.HasPrefix(args[1], "-") && args[1] != "--help" && args[1] != "-h" {
+			if _, err := os.Stat("mix.sbg"); err == nil {
+				return cmdRender(args, stdout, stderr)
+			}
+		}
+		return cmdMix(args[1:], stdout, stderr)
 	default:
 		return cmdRender(args, stdout, stderr)
 	}
@@ -75,13 +88,22 @@ func cmdRender(args []string, stdout, stderr io.Writer) int {
 	bitDepth := fs.Int("b", 16, "bit depth for wav/flac output")
 	bitrate := fs.Int("q", 320, "MP3 bitrate in kbps (32-320)")
 	outPath := fs.String("o", "", "output path (default: <session>.<format>)")
-	length := fs.String("L", "", "limit output length (h:mm[:ss])")
+	length := fs.String("L", "", "output length (native: 30s or h:mm[:ss]; legacy: h:mm[:ss])")
+	var start *time.Duration
+	fs.Func("start", "source position of exact native excerpt (e.g. 4m20s)", func(text string) error {
+		at, err := parseNativeTime(text)
+		if err != nil || at < 0 {
+			return fmt.Errorf("invalid nonnegative excerpt start %q", text)
+		}
+		start = &at
+		return nil
+	})
 	rate := fs.Int("r", 44100, "sample rate")
 	// Go's flag package stops at the first positional; reorder so flags
 	// may appear after the session name (`entrain focus-10 --dry-run`),
 	// keeping each value-taking flag glued to its argument.
 	var flags, pos []string
-	withValue := map[string]bool{"-o": true, "-L": true, "-r": true, "-f": true, "-q": true, "-b": true}
+	withValue := map[string]bool{"-o": true, "-L": true, "-r": true, "-f": true, "-q": true, "-b": true, "--start": true, "-start": true}
 	for i := 0; i < len(args); i++ {
 		a := args[i]
 		if strings.HasPrefix(a, "-") && a != "-" {
@@ -120,6 +142,32 @@ func cmdRender(args []string, stdout, stderr io.Writer) int {
 	}
 
 	path := fs.Arg(0)
+	if isNative(path) {
+		output := mixOutput{Path: *outPath, DryRun: *dryRun, Start: start}
+		emptyLimit := false
+		fs.Visit(func(f *flag.Flag) {
+			switch f.Name {
+			case "L":
+				emptyLimit = *length == ""
+			case "f":
+				output.Format = *format
+			case "b":
+				output.Bits = *bitDepth
+			case "q":
+				output.Bitrate = *bitrate
+				output.BitrateSet = true
+			}
+		})
+		if emptyLimit {
+			fmt.Fprintln(stderr, "entrain: -L requires a positive length")
+			return 2
+		}
+		return cmdTrain(path, *length, *rate, output, stdout, stderr)
+	}
+	if start != nil {
+		fmt.Fprintln(stderr, "entrain: --start requires a native .entrain or .toml session")
+		return 2
+	}
 	if !strings.HasSuffix(path, ".sbg") {
 		path += ".sbg"
 	}
@@ -127,6 +175,20 @@ func cmdRender(args []string, stdout, stderr io.Writer) int {
 	if err != nil {
 		fmt.Fprintf(stderr, "entrain: %v\n", err)
 		return 1
+	}
+
+	if *outPath == "" {
+		*outPath = strings.TrimSuffix(path, ".sbg") + "." + *format
+	}
+	if err := checkOutput(path, *outPath); err != nil {
+		fmt.Fprintf(stderr, "entrain: %v\n", err)
+		return 2
+	}
+	if *format == "mp3" {
+		if err := codec.ValidateMp3(*rate, *bitrate); err != nil {
+			fmt.Fprintf(stderr, "entrain: %v\n", err)
+			return 1
+		}
 	}
 
 	var limit time.Duration
@@ -162,10 +224,7 @@ func cmdRender(args []string, stdout, stderr io.Writer) int {
 	}
 
 	buf := plan.Render(*rate)
-	if *outPath == "" {
-		*outPath = strings.TrimSuffix(path, ".sbg") + "." + *format
-	}
-	if err := encode(*outPath, *format, *rate, *bitDepth, *bitrate, buf); err != nil {
+	if err := encode(path, *outPath, *format, *rate, *bitDepth, *bitrate, buf); err != nil {
 		fmt.Fprintf(stderr, "entrain: %v\n", err)
 		return 1
 	}
@@ -175,10 +234,47 @@ func cmdRender(args []string, stdout, stderr io.Writer) int {
 	return 0
 }
 
-// encode writes the rendered buffer to path in the given format.
-func encode(path, format string, rate, bitDepth, bitrate int, buf []float64) error {
-	f, err := os.Create(path)
+var errSourceOutput = errors.New("choose an output separate from the source session")
+
+func checkOutput(source, output string) error {
+	dst, err := os.Stat(output)
+	if os.IsNotExist(err) {
+		return nil
+	}
 	if err != nil {
+		return err
+	}
+	src, err := os.Stat(source)
+	if err != nil {
+		return err
+	}
+	if os.SameFile(src, dst) {
+		return errSourceOutput
+	}
+	return nil
+}
+
+// encode writes the rendered buffer to path in the given format.
+func encode(source, path, format string, rate, bitDepth, bitrate int, buf []float64) error {
+	// Open without truncating. Recheck the chosen file itself before writing
+	// in case a symlink or hard link changed while a long plan rendered.
+	input, err := os.Stat(source)
+	if err != nil {
+		return err
+	}
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0666)
+	if err != nil {
+		return err
+	}
+	dst, err := f.Stat()
+	if err == nil && os.SameFile(input, dst) {
+		err = errSourceOutput
+	}
+	if err == nil && dst.Mode().IsRegular() {
+		err = f.Truncate(0)
+	}
+	if err != nil {
+		f.Close()
 		return err
 	}
 	switch format {
