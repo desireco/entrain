@@ -847,6 +847,15 @@
     });
   }
   setInterval(function () {
+    var track = document.querySelector('#section-timeline .tl-track');
+    if (track) {
+      var head = track.querySelector('.tl-playhead');
+      var total = EntrainEditor.timeMS($('#mix-duration').value);
+      if (engine.playing && total > 0) {
+        head.hidden = false;
+        head.style.left = Math.min(100, engine.position() * 1000 / total * 100) + '%';
+      } else head.hidden = true;
+    }
     if (engine.playing) $('#elapsed').textContent = fmt(engine.position());
   }, 250);
   syncSessionUI();

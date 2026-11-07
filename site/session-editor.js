@@ -26,6 +26,9 @@
     return ms + 'ms';
   }
   const keys = ['start','duration','cue','volume','interval','fadeIn','fadeOut'];
+  // The proportional timeline is a creator-only visual; the Studio keeps its player focus.
+  const timelineTrack = () => document.body.dataset.page === 'session-creator' ?
+    document.querySelector('#section-timeline .tl-track') : null;
   class Sections {
     constructor(change, audition, duration) {
       this.change = change;
@@ -33,6 +36,7 @@
       this.duration = duration;
       this.list = document.getElementById('section-list');
       this.add = document.getElementById('add-section');
+      this.track = timelineTrack();
       let stored;
       try { stored = JSON.parse(localStorage.getItem('entrain.sections') || '[]'); } catch { /* Start with an empty schedule. */ }
       this.rows = Array.isArray(stored) ? stored.filter(row => row && keys.every(k => typeof row[k] === 'string')) : [];
@@ -78,6 +82,34 @@
         for (const el of fragment.querySelectorAll('[data-field]')) el.value = row[el.dataset.field];
         this.list.append(fragment);
       });
+      this.renderTimeline();
+    }
+    renderTimeline() {
+      if (!this.track) return;
+      const wrap = this.track.closest('#section-timeline');
+      const total = this.duration();
+      wrap.classList.toggle('empty', !this.rows.length || !(total > 0));
+      for (const el of this.track.querySelectorAll('.tl-block')) el.remove();
+      if (!(total > 0)) return;
+      this.rows.forEach((row, i) => {
+        const start = timeMS(row.start), length = timeMS(row.duration);
+        if (!(start >= 0) || !(length > 0)) return;
+        const block = document.createElement('div');
+        block.className = 'tl-block';
+        block.style.left = Math.min(100, start / total * 100) + '%';
+        block.style.width = Math.max(1.2, Math.min(100, length / total * 100)) + '%';
+        block.title = 'Section ' + (i + 1) + ' · ' + row.cue;
+        block.textContent = String(i + 1);
+        block.addEventListener('click', () => this.focusRow(i));
+        this.track.append(block);
+      });
+    }
+    focusRow(i) {
+      const fields = this.list.children[i];
+      if (!fields) return;
+      fields.scrollIntoView({block: 'nearest', behavior: 'smooth'});
+      const first = fields.querySelector('input');
+      if (first) first.focus({preventScroll: true});
     }
     validate() {
       const result = [], errors = [];
@@ -108,6 +140,7 @@
       });
       this.add.disabled = !!errors.length || !(fileMS > end);
       for (const button of this.list.querySelectorAll('[data-action="audition"]')) button.disabled = !!errors.length;
+      this.renderTimeline();
       document.getElementById('section-message').textContent = errors.join(' ') ||
         (!this.rows.length ? 'No sections yet. The background plays alone.' : end >= fileMS ? 'The final section reaches the end of the session.' : '');
       return errors.length ? null : result;

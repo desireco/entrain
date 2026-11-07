@@ -168,6 +168,10 @@
           <div class="mix-cli" id="section-editor" hidden>
             <h3>Timed cue sections</h3>
             <p class="source-feedback">Each section starts on the left. Gaps play the background alone.</p>
+            <div id="section-timeline" aria-hidden="true" class="empty">
+              <p class="tl-empty">No cue sections yet — the background plays alone. Add a section to place bells, tones, or noise.</p>
+              <div class="tl-track"><div class="tl-playhead" hidden></div></div>
+            </div>
             <div id="section-list"></div>
             <div class="source-actions"><button type="button" id="add-section">Add section</button></div>
             <p id="section-message" class="source-feedback" aria-live="polite"></p>
