@@ -13,7 +13,7 @@ NAV = {
     "listening-guide": "Listening Guide", "handbook": "Handbook",
 }
 DESC = {
-    "home": "Choose a background and render a stereo recording locally with Entrain.",
+    "home": "Binaural beats that guide your brain toward sleep, calm and focus — write sessions as plain text and render them to stereo on your machine with the Entrain CLI.",
     "studio": "Audition five backgrounds, mix alternating cues, and try binaural sessions.",
     "session-creator": "Create, edit, preview and download a native .entrain session to render locally.",
     "listening-guide": "Compare the backgrounds, stereo cues and binaural presets by ear.",
