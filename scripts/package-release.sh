@@ -22,6 +22,6 @@ for tool in entrain beatscope noisemaker; do
 done
 cp LICENSE "$dir/"
 cp docs/release-quickstart.md "$dir/README.md"
-cp examples/{rain-bell.entrain,rain-bell-timeline.entrain,focus-40-pink.sbg,emdr-timbres.sbg} "$dir/examples/"
-tar --owner=0 --group=0 --numeric-owner --sort=name -czf "$dest/$name.tar.gz" -C "$tmp" "$name"
+cp examples/{rain-bell.entrain,rain-bell-timeline.entrain,focus-40-pink.sbg,emdr-timbres.sbg,evolving-rain.entrain,wind-bells.entrain,surf-bells.entrain} "$dir/examples/"
+tar --mtime="@$(git show -s --format=%ct HEAD)" --owner=0 --group=0 --numeric-owner --sort=name -czf "$dest/$name.tar.gz" -C "$tmp" "$name"
 (cd "$dest" && sha256sum "$name.tar.gz" > "$name.tar.gz.sha256")

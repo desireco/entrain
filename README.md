@@ -11,19 +11,18 @@ Project homepage: **[entrain.cc](https://entrain.cc/)**
 
 ## Install the CLI
 
-[v0.2.0 downloads and checksums](https://github.com/desireco/entrain/releases/tag/v0.2.0) are available for Linux and macOS on x86-64 and ARM64, and Windows on x86-64. Each archive includes the three tools, an offline quickstart and example sessions.
+[v0.3.0 downloads and checksums](https://github.com/desireco/entrain/releases/tag/v0.3.0) are available for Linux and macOS on x86-64 and ARM64, and Windows on x86-64. Each archive includes the three tools, an offline quickstart and example sessions.
 
 With Go, install this version of the renderer directly:
 
 ```sh
-go install github.com/desireco/entrain/cmd/entrain@v0.2.0
+go install github.com/desireco/entrain/cmd/entrain@v0.3.0
 entrain version
 ```
 
-For **evolving rain, wind and surf**, build this checkout with
-`go build -o entrain ./cmd/entrain` and run `./entrain`, or download the
-matching Linux x86-64 executable from the local Studio. The published
-v0.2.0 contains the original looped rain and predates wind and surf.
+This release renders the evolving rain, wind and surf sessions from the
+[Studio](https://entrain.cc/studio/), including seeds and timed cues.
+Download a `.entrain` file there and run `entrain render your-session.entrain`.
 
 ## What it does
 
@@ -36,24 +35,24 @@ entrain mix pink --duration 20m -o pink.wav
 entrain mix rain --cue bell --duration 20s --save-session my-rain.entrain
 entrain render my-rain.entrain -o my-rain.wav
 entrain render examples/rain-bell-timeline.entrain --dry-run
+entrain render examples/surf-bells.entrain --start 12s -L 30s -o surf-entrance.wav
 entrain mix rain --cue bell --cue-volume 65 --cue-interval-ms 850 --duration 10m -o rain-bell.mp3
 ```
 
-The v0.2.0 choices are `pink`, `white` and `rain`. The background plays alone by default.
+The choices are `pink`, `white`, `rain`, `wind`, `surf` and `rain-loop`. The background plays alone by default.
 Use `--cue bell`, `tone`, or `noise` to add one alternating sound.
 Set cue amplitude and time between alternating onsets independently.
 The defaults are 100% and 625 ms. See the [CLI guide](docs/cli-guide.md)
 for a short listening preview, parameter ranges, and export commands.
 Use the [listening guide](docs/listening-guide.md) to compare the sounds.
-The default length is six minutes. In v0.2.0 all three backgrounds use
-60-second loops. This local build generates `rain`, `wind` and `surf`
+The default length is six minutes. This release generates `rain`, `wind` and `surf`
 continuously for the requested duration. Try the [30-minute rain](examples/evolving-rain.entrain)
 or the 12-minute [wind](examples/wind-bells.entrain) and [surf](examples/surf-bells.entrain)
 sessions with timed bells. To create a simpler mix directly, run
 `entrain mix surf --cue bell --duration 12m -o surf-bells.flac`.
 
-The local `rain-loop` reproduces v0.2.0 rain. A file selecting `rain`
-therefore sounds different in the new build. Pink and white retain their
+The `rain-loop` reproduces v0.2.0 rain. A file selecting `rain`
+therefore sounds different in v0.3.0. Pink and white retain their
 mastered loops. All render offline. See the [native format](docs/sequence-format.md)
 for authoring and the [production recipes](examples/noise-backgrounds/README.md)
 for the original six-minute noise tracks.
@@ -128,7 +127,7 @@ GPLv2, with a bespoke `.sbg` format and a single-file C codebase. Entrain keeps 
 
 ## Status & roadmap
 
-v0.2.0 adds native soundscapes, source export and a cue timeline. See the [release notes](docs/releases/v0.2.0.md) for installation and examples.
+v0.3.0 adds evolving backgrounds, repeatable seeds and exact excerpts to native soundscapes, source export and cue timelines. See the [release notes](docs/releases/v0.3.0.md) for installation and examples.
 
 | Phase | Scope |
 |---|---|

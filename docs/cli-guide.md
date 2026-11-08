@@ -4,11 +4,15 @@ Entrain renders a stereo audio file you can play in your usual player.
 Use `mix` for a one-off render or save a native `.entrain` file from
 the terminal or Studio to reproduce it later.
 
-The public Studio's Linux x86-64 download is built from the same commit as
-its browser renderer. [Build information](https://entrain.cc/local-cli/build-info.txt)
-identifies that commit and gives source-build commands for other platforms.
-The [checksum](https://entrain.cc/local-cli/entrain-linux-amd64.sha256) verifies
-the Linux executable. The earlier v0.2.0 release predates these evolving sounds.
+Install v0.3.0 to render the current [Studio](https://entrain.cc/studio/)
+files, including evolving rain, wind, surf, seeds and timed cues.
+Download a [platform archive and checksum](https://github.com/desireco/entrain/releases/tag/v0.3.0),
+or install the renderer with Go:
+
+```sh
+go install github.com/desireco/entrain/cmd/entrain@v0.3.0
+entrain version
+```
 
 ## Run this checkout
 
@@ -64,7 +68,7 @@ independent of the seed. A positive seed is unsupported on mastered loops
 (`pink`, `white`, `rain-loop`). Saved sources keep a positive seed
 in their `[[voice]]` entry.
 
-### Rain, wind and surf in the local build
+### Rain, wind and surf
 
 For thirty minutes of rain alone, render the included native session or use
 the equivalent mix command. Both generate the stereo bed from the beginning,
@@ -75,7 +79,7 @@ entrain render examples/evolving-rain.entrain -o evolving-rain.flac
 entrain mix rain --duration 30m -f flac -b 24 -o evolving-rain.flac
 ```
 
-The local CLI and the Studio served with this checkout continue generating
+The v0.3.0 CLI and the public Studio continue generating
 rain, wind and surf past each minute boundary. Wind builds from gentle gusts;
 surf moves through swells, breaking waves and foam. The same cue choices
 and timing controls work over all three backgrounds.
@@ -90,16 +94,14 @@ For a longer mix with a cue-free opening, try the included
 [surf and bells](../examples/surf-bells.entrain) sessions. Each runs
 for twelve minutes and introduces the bells at 18 seconds.
 
-The local Studio plays rain, wind and surf for the selected file duration. Its
+The Studio plays rain, wind and surf for the selected file duration. Its
 pink and white previews stop after one minute or at the end of a shorter file.
 
-Use the matching local CLI downloaded from Studio, or build this checkout
-with `go build -o entrain ./cmd/entrain`. Run `./entrain` to select that
-executable explicitly. The published v0.2.0 CLI uses a mastered
+Use the v0.3.0 CLI to render the current Studio files. The earlier v0.2.0 CLI uses a mastered
 60-second rain loop and predates wind and surf. An existing file with `background = "rain"`
 uses evolving rain when rendered with the new CLI. To reproduce its
 v0.2.0 bed with this build, change just the background to `"rain-loop"`
-or use `entrain mix rain-loop`. The released CLI uses `rain` for that loop.
+or use `entrain mix rain-loop`. The v0.2.0 CLI uses `rain` for that loop.
 Cue settings and timed cue sections work with either bed.
 
 To hear a cue over the same bed, choose `bell`, `tone`, or `noise`. Here
@@ -172,7 +174,7 @@ entrain render examples/rain-bell.entrain -q 192 -o rain-bell.mp3
 ```
 
 All soundscape renders are 44.1 kHz stereo. The CLI streams the output,
-including long sessions. In this local build rain, wind and surf run for the
+including long sessions. In v0.3.0 rain, wind and surf run for the
 whole session. Pink, white and `rain-loop` use 60-second mastered loops.
 Cue timing runs independently of each background. For the evolving six-minute takes, see
 the [full-length background recipes](../examples/noise-backgrounds/README.md).

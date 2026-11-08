@@ -1,8 +1,10 @@
 # Entrain CLI roadmap
 
-## Available in v0.2.0
+## Available in v0.3.0
 
-The [CLI release](https://github.com/desireco/entrain/releases/tag/v0.2.0) packages the renderer, Beatscope, Noisemaker and four editable examples. The CLI runs offline from the extracted archive and reads both native TOML soundscapes and legacy `.sbg` scores. [Packaged quickstart](release-quickstart.md) · [CLI guide](cli-guide.md)
+Evolving rain, wind and surf, repeatable seeds, and exact native excerpts are released. Studio sources render offline with the installed CLI.
+
+The [CLI release](https://github.com/desireco/entrain/releases/tag/v0.3.0) packages the renderer, Beatscope, Noisemaker and seven editable examples. The CLI runs offline from the extracted archive and reads both native TOML soundscapes and legacy `.sbg` scores. [Packaged quickstart](release-quickstart.md) · [CLI guide](cli-guide.md)
 
 - **Repeat a mix.** `entrain mix rain --cue bell --duration 20s --save-session my-rain.entrain` writes editable source. Dry-run or render the saved file on another machine using the same version. [Native format](sequence-format.md)
 - **Shape a longer session.** Play a continuous background with a cue entering later, fading in and fading out. The six-minute example starts with rain alone and plays alternating bells from minute one through minute five. [Timeline example](../examples/rain-bell-timeline.entrain)

@@ -27,7 +27,7 @@ A native file can be rendered in any working directory using this version
 of the installed CLI; the sound sources are inside the binary.
 
 - `version = 1` and exactly one `[[voice]]` of type `"soundscape"` are required.
-- In the local CLI build, `background` accepts `"pink"`, `"white"`, `"rain"`,
+- In v0.3.0, `background` accepts `"pink"`, `"white"`, `"rain"`,
   `"wind"`, `"surf"` and `"rain-loop"`. Rain, wind and surf each generate an
   evolving stereo bed for the full duration.
   `"rain-loop"` reproduces the 60-second rain bed named `"rain"` in v0.2.0.
@@ -61,8 +61,7 @@ of the installed CLI; the sound sources are inside the binary.
 - In a continuous mix, the bed and cue start at frame zero. Cue spacing is independent of the background.
   One continuous, equal stereo gain taper covers the first and last half
   second, shortened for shorter sessions. Monitoring volume stays local
-  to the playback device. The local Studio uses the same generators as this
-  build for rain, wind and surf. Public v0.2.0 uses its earlier rain loop.
+  to the playback device. The public Studio uses the same generators as v0.3.0 for rain, wind and surf. The earlier v0.2.0 release uses its earlier rain loop.
 - Unknown fields, unsupported voice types, and unsupported versions are
   rejected. `.sbg` files continue through the legacy renderer.
 
