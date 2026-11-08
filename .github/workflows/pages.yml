@@ -5,6 +5,19 @@ on:
     branches: [main]
     paths:
       - 'site/**'
+      - 'web/**'
+      - 'scripts/build-site.py'
+      - 'scripts/build-studio-*.sh'
+      - 'cmd/**'
+      - 'internal/**'
+      - 'codec/**'
+      - 'synth/**'
+      - 'noise/**'
+      - 'seq/**'
+      - 'go.mod'
+      - 'go.sum'
+      - 'docs/**'
+      - 'examples/**'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -25,6 +38,20 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Verify the renderer and generated pages
+        run: |
+          go vet ./...
+          go test ./...
+          python3 scripts/build-site.py --check
+      - name: Build matching browser audio and offline CLI
+        run: |
+          scripts/build-studio-soundscapes.sh
+          scripts/build-studio-cli.sh
+          site/local-cli/entrain-linux-amd64 render examples/surf-bells.entrain --start 12s -L 2s -o /tmp/surf-preview.wav
+          site/local-cli/entrain-linux-amd64 render examples/focus-40-pink.sbg -L 0:00:01 -o /tmp/legacy-preview.wav
       - uses: actions/configure-pages@v5
         with:
           enablement: true

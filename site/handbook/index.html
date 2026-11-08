@@ -63,10 +63,10 @@
     <div class="section-head reveal">
       <span class="eyebrow">Handbook</span>
       <h1>Render a session <em>with the CLI.</em></h1>
-      <p class="section-sub">Use your own <code>.entrain</code> session or build one in the <a href="studio/">Studio</a>. The local CLI renders evolving rain, wind and surf. The published <a class="guide-link" href="https://github.com/desireco/entrain/releases/tag/v0.2.0">v0.2.0 release</a> plays looped rain and has no wind or surf.</p>
+      <p class="section-sub">Use your own <code>.entrain</code> session or build one in the <a href="studio/">Studio</a>. The Studio CLI download renders evolving rain, wind and surf. The published <a class="guide-link" href="https://github.com/desireco/entrain/releases/tag/v0.2.0">v0.2.0 release</a> plays looped rain and has no wind or surf.</p>
     </div>
     <ol class="how-to">
-      <li><strong>Get the local CLI.</strong> On Linux x86-64, <a href="local-cli/entrain-linux-amd64" download="entrain">download the matching executable</a> and run <code>chmod +x ./entrain</code> in its folder. On another platform, open this source checkout and build with <a href="https://go.dev/doc/install">Go</a>: <code>go build -o entrain ./cmd/entrain</code>. On Windows build <code>entrain.exe</code> and use <code>.&#92;entrain.exe</code>.</li>
+      <li><strong>Get the matching CLI.</strong> On Linux x86-64, <a href="local-cli/entrain-linux-amd64" download="entrain">download the executable</a> and run <code>chmod +x ./entrain</code> in its folder. This build comes from the same source commit as the Studio. Check its <a href="local-cli/entrain-linux-amd64.sha256">SHA-256 checksum</a> and <a href="local-cli/build-info.txt">version and exact source-build instructions</a>. On macOS, Windows or another Linux platform, follow those source instructions with <a href="https://go.dev/doc/install">Go</a>. On Windows build <code>entrain.exe</code> and run <code>.&#92;entrain.exe</code>.</li>
       <li><strong>Build or edit a session.</strong> Open the <a href="studio/">Studio</a> and choose a background, a length, and optional cues. To edit the score directly, open the <a href="studio/#session-source">.entrain source</a>, change the text, and choose <strong>Apply source</strong>. Press Play to hear the applied settings. Preview volume controls the browser only.</li>
       <li><strong>Save and render.</strong> Copy or download the displayed text, including your edits and comments. Place the file beside the executable and run the command shown in the editor. For a file named <code>rain-bell.entrain</code>, run <code>./entrain render rain-bell.entrain -o rain-bell.wav</code>, then open the WAV in an audio player. For timed cues, use sections with their own start, duration and fades. Use <strong>Preview entrance</strong> to audition a section before rendering. <a href="docs/cli-guide.md" download>CLI guide</a> · <a href="docs/sequence-format.md" download>Native session reference</a>.</li>
     </ol>
@@ -80,7 +80,7 @@
       <div class="terminal-panel" data-od-id="handbook-terminal">
         <div class="term-head" aria-hidden="true"><i></i><i></i><i></i><span id="term-tab-name">entrain · install</span></div>
         <div id="panel-install" role="tabpanel" aria-labelledby="tab-install" class="term-code">
-<span class="c"># Build the matching local CLI from this source checkout</span><br>
+<span class="c"># Build the source commit linked in the download instructions</span><br>
 <span class="p">$</span> go build -o ./entrain ./cmd/entrain<br>
 <span class="p">$</span> ./entrain mix --help<br><br>
 <span class="c"># Earlier release: v0.2.0 archives with the original rain loop</span><br>

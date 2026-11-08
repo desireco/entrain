@@ -4,6 +4,12 @@ Entrain renders a stereo audio file you can play in your usual player.
 Use `mix` for a one-off render or save a native `.entrain` file from
 the terminal or Studio to reproduce it later.
 
+The public Studio's Linux x86-64 download is built from the same commit as
+its browser renderer. [Build information](https://entrain.cc/local-cli/build-info.txt)
+identifies that commit and gives source-build commands for other platforms.
+The [checksum](https://entrain.cc/local-cli/entrain-linux-amd64.sha256) verifies
+the Linux executable. The earlier v0.2.0 release predates these evolving sounds.
+
 ## Run this checkout
 
 From the repository root, install the CLI and check its built-in help.
